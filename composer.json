@@ -5,5 +5,8 @@
     "authors": [{
         "name": "itlife",
         "email": "info@itlife-studio.ru"
-    }]
+    }],
+    "require": {
+		"oduvanio/catalog":"v1.0"
+    }
 }
