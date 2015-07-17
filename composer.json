@@ -1,12 +1,12 @@
 {
-    "name": "itlife/catalog",
+    "name": "oduvanio/catalog",
     "description": "catalog for sites infrajs",
     "license": "GPL3",
     "authors": [{
-        "name": "itlife",
+        "name": "oduvanio",
         "email": "info@itlife-studio.ru"
     }],
     "require": {
-		"oduvanio/catalog":"v1.0"
+		"oduvanio/catalog":"1.0"
     }
 }
