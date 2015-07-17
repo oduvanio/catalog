@@ -1,0 +1,9 @@
+{
+    "name": "itlife/catalog",
+    "description": "catalog for sites infrajs",
+    "license": "GPL3",
+    "authors": [{
+        "name": "itlife",
+        "email": "info@itlife-studio.ru"
+    }]
+}
