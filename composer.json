@@ -6,12 +6,6 @@
         "name": "oduvanio",
         "email": "info@itlife-studio.ru"
     }],
-    "repositories":[
-    	{
-    		"type":"git",
-    		"url":"https://github.com/oduvanio/catalog"
-    	}
-    ],
     "require": {
 		"oduvanio/catalog":"1.0"
     }
