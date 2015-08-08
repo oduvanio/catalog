@@ -1,10 +1,10 @@
 {producers:}
-	<h1>Производители</h1>
+	<h1>Производители!</h1>
 	<div style="padding:10px; font-size:12px; margin-bottom:20px;">
-		{data.producers::catprod1}
+		{data.list::catprod1}
 	</div>
 	<div style="background-color:white; padding:10px; text-align:center; margin-bottom:20px;">
-		{data.producers::catprod}
+		{data.list::catprod}
 	</div>
 	{data.text}
 	<div style="margin-top:10px">

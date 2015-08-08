@@ -307,4 +307,45 @@ if ($type=='search') {
 	$bread['groups']=$groups;
 	$ans['bread']=$bread;
 }
+if ($type=='search') {
+		if (isset($ans['text'])) {
+			$ans['text']=infra_loadTEXT($ans['text']);
+		}
+		if ($val=='change') {
+			$data=cat_init();
+			//Смотрим дату изменения папки для каждой позиции кэшируем на изменение XLS файлов как всё здесь...
+			//И дату изменения файлов в папке
+			//Позиции без папок игнорируются
+			$poss=array();
+			xls_runPoss($data, function (&$pos) use (&$poss) {
+				$conf=infra_config();
+				$dir=infra_theme($conf['catalog']['dir'].$pos['producer'].'/'.$pos['article'].'/');
+				if (!$dir) {
+					return;
+				}
+				$pos['time']=filemtime($dir);
+
+				array_map(function ($file) use (&$pos, $dir) {
+					if ($file{0}=='.') {
+						return;
+					}
+					$t=filemtime($dir.$file);
+					if ($t>$pos['time']) {
+						$pos['time']=$t;
+					}
+				}, scandir($dir));
+				$poss[]=&$pos;
+			});
+
+
+			usort($poss, function ($a, $b) {
+				if ($a['time']==$b['time']) {
+					return 0;
+				}
+				return ($a['time']>$b['time'])?-1:1;
+			});
+			$ans['list']=array_slice($poss, 0, 30);
+			$ans['count']=sizeof($ans['list']);
+		};
+	}
 return infra_ret($ans);
