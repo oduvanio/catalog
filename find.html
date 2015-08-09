@@ -2,7 +2,11 @@
 <form onsubmit="
 	var val=$(this).find('[type=text]').val();
 	val=infra.forFS(val);
-	infra.Crumb.go('{crumb.parent.name}/'+val);
+
+
+	var layer=infrajs.find('unick','catalog');
+	infra.Crumb.go(layer.crumb.name+'/'+val);
+
 	setTimeout(function(){
 		$.getJSON(infra.theme('*catalog/catalog.php?type=stat&submit=1&val='+val));
 	},1);

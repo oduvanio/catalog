@@ -14,4 +14,14 @@ if (!$data) {
 	return infra_err($ans, 'Ошибка producers.php');
 }
 
+$data=infra_loadJSON('*catalog/stat.php');
+if (!$data) {
+	return infra_err($ans, 'Ошибка stat.php');
+}
+
+$data=infra_loadJSON('*catalog/change.php');
+if (!$data) {
+	return infra_err($ans, 'Ошибка change.php');
+}
+
 return infra_ret($ans);

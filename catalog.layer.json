@@ -2,6 +2,7 @@
 	"tpl":"*catalog/rubrics.tpl",
 	"json":"*catalog/rubrics.php",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
+	"unick":"catalog",
 	"configtpl":{
 		"root":"{crumb}"
 	},
@@ -21,29 +22,7 @@
 			"tpl":"*catalog/position.tpl",
 			"autoedittpl":{ "fast":"*Каталог/{crumb.parent.name}/{crumb.name}/" },
 			"jsontpl":"*catalog/catalog.php?type=pos&val={crumb.parent.name}&art={crumb.name}",
-			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"},
-			"seo":{
-				"name":"Позиция каталога",
-				"json":"*catalog/catalog.php?type=pos&val={producer}&art={article}",
-				"tpl":["<h1>{pos.Производитель} {pos.Артикул}</h1>{pos.texts::t}{t:}{.}"],
-				"schema":{
-					"type":"object",
-					"properties":{
-						"producer":{
-							"title":"Производитель",
-							"type":"string",
-							"required":true
-						},
-						"article":{
-							"title":"Артикул",
-							"type":"string",
-							"required":true
-						}
-					}
-					
-				},
-				"defitems":"*catalog/catalog.php?type=seo&val=pos"
-			}
+			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"}
 		}
 	}],
 	"childs":{
@@ -53,10 +32,8 @@
 		},
 		"change":{
 			"tpl":"*catalog/search.tpl",
-			"jsontpl":"*catalog/search.php?type=search&val={crumb.name}&prod={config.sel}",
-			"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
+			"jsontpl":"*catalog/change.php",
 			"conf_prod":true,
-			"unick":"search",
 			"parsedtpl":"{config.sel}",
 			"configtpl":{
 				"root":"{crumb.parent}",
@@ -69,9 +46,8 @@
 			"autoedit":{ "fast":"*Тексты/Производители"}
 		},
 		"stat":{
-			"tpl":"*catalog/catalog.tpl",
-			"tplroot":"stat",
-			"json":"*catalog/catalog.php?type=stat",
+			"tpl":"*catalog/stat.tpl",
+			"json":"*catalog/stat.php",
 			"autoedit":{ "fast":"*Тексты/Статистика поиска по каталогу"},
 			"seotpl":{
 				"link":"{crumb}",
