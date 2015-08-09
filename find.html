@@ -1,0 +1,23 @@
+<h1>Поиск по каталогу</h1>
+<form onsubmit="
+	var val=$(this).find('[type=text]').val();
+	val=infra.forFS(val);
+	infra.Crumb.go('{crumb.parent.name}/'+val);
+	setTimeout(function(){
+		$.getJSON(infra.theme('*catalog/catalog.php?type=stat&submit=1&val='+val));
+	},1);
+	return false;">
+	<table style="width:730px;" cellspacing="0" cellpadding="0">
+		<tr>
+			<td>
+				<input style="width:100%; margin:0; padding:4px; font-weight:bold; font-size:20px;" name="search" size="25" type="text" placeholder="Поиск по каталогу" value="">
+			</td>
+			<td style="text-align:right">
+				<button style="
+				font-size:19px; 
+				padding:5px 26px; margin:0 0 0 20px;" href="?{crumb.parent.name}" onclick="$(this).parents('form').submit(); return false;">Искать</button>    
+			</td>
+		</tr>
+	</table>
+	<input type="submit" style="display:none;">
+</form>

@@ -1,5 +1,6 @@
 <?php
 namespace itlife\catalog;
+use itlife\files\Xlsx;
 
 class Catalog
 {

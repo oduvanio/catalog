@@ -2,6 +2,8 @@
 
 namespace itlife\catalog;
 
+use itlife\files\Xlsx;
+
 $ans=array();
 
 //На главной странице каталога показываются и может быть эти даные используются для показа групп на главной траницы
@@ -10,9 +12,8 @@ $data=Catalog::init();
 $data=$data['childs'];
 
 foreach ($data as $k => &$gr) {
-	$pos=&xls_runPoss($gr, function &(&$pos) {
-		$conf=infra_config();
-		xls_preparePosFiles($pos, $conf['catalog']['dir'], array('producer','article'));
+	$pos=&Xlsx::runPoss($gr, function &(&$pos) {
+		Xlsx::addFiles($pos);
 		if (!$pos['images']) {
 			return;
 		}
@@ -24,9 +25,11 @@ foreach ($data as $k => &$gr) {
 		unset($gr['childs']);
 		unset($gr['data']);
 
-		$gr['pos']=array('article' => $pos['article'],'producer' => $pos['Производитель']);
+		$gr['pos']=array('images'=>$pos['images'],'article' => $pos['article'],'producer' => $pos['Производитель']);
 	} else {
 		unset($data[$k]);
 	}
 }
-$ans['childs']=$data;
+$ans['childs']=array_values($data);
+$ans['menu']=infra_loadJSON('*catalog/rubrics.json');
+return infra_ret($ans);

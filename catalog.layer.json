@@ -1,14 +1,12 @@
 {
-	"tpl":"*catalog/catalog.tpl",
-	"tplroot":"groups",
-	"json":"*catalog/catalog.php?type=rubrics",
+	"tpl":"*catalog/rubrics.tpl",
+	"json":"*catalog/rubrics.php",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
 	"configtpl":{
 		"root":"{crumb}"
 	},
 	"child":[{
-		"tpl":"*catalog/catalog.tpl",
-		"tplroot":"SEARCH",
+		"tpl":"*catalog/search.tpl",
 		"jsontpl":"*catalog/search.php?type=search&val={crumb.name}&prod={config.sel}",
 		"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
 		"conf_prod":true,
@@ -20,8 +18,7 @@
 		}
 	},{
 		"child":{
-			"tpl":"*catalog/catalog.tpl",
-			"tplroot":"pos",
+			"tpl":"*catalog/position.tpl",
 			"autoedittpl":{ "fast":"*Каталог/{crumb.parent.name}/{crumb.name}/" },
 			"jsontpl":"*catalog/catalog.php?type=pos&val={crumb.parent.name}&art={crumb.name}",
 			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"},
@@ -50,21 +47,28 @@
 		}
 	}],
 	"childs":{
-		"Поиск":{
-			"tpl":"*catalog/catalog.tpl",
-			"tplroot":"find",
-			"autosavename":"search",
-			"myenv":{
-				"cat_search":false
+		"find":{
+			"tpl":"*catalog/find.html",
+			"autosavename":"catalog.search"
+		},
+		"change":{
+			"tpl":"*catalog/search.tpl",
+			"jsontpl":"*catalog/search.php?type=search&val={crumb.name}&prod={config.sel}",
+			"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
+			"conf_prod":true,
+			"unick":"search",
+			"parsedtpl":"{config.sel}",
+			"configtpl":{
+				"root":"{crumb.parent}",
+				"sel":"{config.sel|crumb.name}"
 			}
 		},
 		"producers":{
-			"tpl":"*catalog/catalog.tpl",
-			"tplroot":"producers",
-			"json":"*catalog/catalog.php?type=producers",
+			"tpl":"*catalog/producers.tpl",
+			"json":"*catalog/producers.php",
 			"autoedit":{ "fast":"*Тексты/Производители"}
 		},
-		"Статистика":{
+		"stat":{
 			"tpl":"*catalog/catalog.tpl",
 			"tplroot":"stat",
 			"json":"*catalog/catalog.php?type=stat",

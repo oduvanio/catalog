@@ -2,17 +2,16 @@
 /**
  * Выводит список производителей с количеством позиций
  */
+namespace itlife\catalog;
 use itlife\files\Xlsx;
-
-infra_require('*catalog/catalog.inc.php');
 
 infra_admin_modified();
 
-$list=cat_cache('producers.php', function () {
+$list=Catalog::cache('producers.php', function () {
 	$ans=array();
 	$conf=infra_config();
 	
-	$data=cat_init();
+	$data=Catalog::init();
 	$prods=array();
 	Xlsx::runPoss($data, function (&$pos) use (&$prods) {
 		@$prods[$pos['Производитель']]++;
