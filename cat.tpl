@@ -23,7 +23,7 @@
 		
 	</style>
 	<div class="catgrouplist">
-		{.::groups_group}
+		{::groups_group}
 	</div>
 	<script>
 		infra.when(infrajs,'onshow',function(){
@@ -50,4 +50,4 @@
 				</table>
 			</a>
 		</div>
-		{gimg:}<img src="?{pos.images.0}?w=100&h=80">
+		{gimg:}<img src="?*imager/imager.php?src={infra.conf.catalog.dir}{pos.producer}/{pos.article}/&w=100&h=80">

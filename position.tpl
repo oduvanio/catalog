@@ -1,9 +1,9 @@
 <style>
-#position {
-	font-family: Tahoma;
-	font-size: 13px;
-	color: #404040;
-}
+	#position {
+		font-family: Tahoma;
+		font-size: 13px;
+		color: #404040;
+	}
 	#position a {
 		/*color: #cb5b1e;*/
 	}
@@ -56,29 +56,6 @@
 {data.result?data.pos:start}
 
 {start:}
-	<script>
-			if(!window.catalog)window.catalog={ 
-				search:'Значение поиска',
-				path:['Путь','До','Группы']
-			};
-
-			infra.wait(infrajs,'oncheck',function(){
-
-				var layer=infrajs.getUnickLayer("{unick}");
-				window.catalog.search=infra.Crumb.getInstance().child.child.name;
-
-				infra.when(layer,'onhide',function(){
-					window.catalog.search='';
-					window.catalog.path=[];
-				});
-
-				infra.when(layer,'onshow',function(){
-					var data=infrajs.getData(layer);
-					if(!data.path)data.path=[];
-					window.catalog.path=data.path;
-				});
-			});
-		</script>
 	<div id="position">
 		<div style="float:right">
 
@@ -95,7 +72,7 @@
 		<p></p>
 		{~parse(Подпись)}
 		<p>
-			Задать вопрос о {Производитель} {Артикул} можно с помощью <span class="a showContacts">формы для сообщений</span> или c помощью других <a href="?Контакты">контактов</a>.
+			Задать вопрос о {Производитель} {Артикул} можно с помощью <span class="a showContacts">формы для сообщений</span> или c помощью других <a href="?contacts">контактов</a>.
 		</p>
 		<p>
 			Перейти к группе <a href="?{crumb.parent.parent}/{group_title}">{group_title}</a><br>
@@ -105,7 +82,7 @@
 {poscost:}
 	<div class="alert alert-success">
 		Цена: <span style="font-size:20px">{~cost(Цена)} руб.</span><br>
-		{Наличие?: Есть в наличие.} По вопросам приобретения обращайтесь по телефонам в <a href="?Контакты">контактах</a>.
+		{Наличие?: Есть в наличие.} По вопросам приобретения обращайтесь по телефонам в <a href="?contacts">контактах</a>.
 	</div>
 {files:}
 	<h2>Файлы для {Продажа} {Производитель} {Артикул} </h2>

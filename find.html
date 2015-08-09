@@ -1,27 +1,21 @@
-<h1>Поиск по каталогу</h1>
-<form onsubmit="
-	var val=$(this).find('[type=text]').val();
-	val=infra.forFS(val);
 
+	<h1>Поиск по каталогу</h1>
+	<form class="form-horizontal" onsubmit="
+		var val=$(this).find('[type=text]').val();
+		val=infra.forFS(val);
+		var layer=infrajs.find('unick','catalog');
+		infra.Crumb.go(layer.crumb.name+'/'+val);
+		setTimeout(function(){
+			$.getJSON(infra.theme('*catalog/stat.php?submit=1&val='+val));
+		},1);
+		return false;">
 
-	var layer=infrajs.find('unick','catalog');
-	infra.Crumb.go(layer.crumb.name+'/'+val);
-
-	setTimeout(function(){
-		$.getJSON(infra.theme('*catalog/catalog.php?type=stat&submit=1&val='+val));
-	},1);
-	return false;">
-	<table style="width:730px;" cellspacing="0" cellpadding="0">
-		<tr>
-			<td>
-				<input style="width:100%; margin:0; padding:4px; font-weight:bold; font-size:20px;" name="search" size="25" type="text" placeholder="Поиск по каталогу" value="">
-			</td>
-			<td style="text-align:right">
-				<button style="
-				font-size:19px; 
-				padding:5px 26px; margin:0 0 0 20px;" href="?{crumb.parent.name}" onclick="$(this).parents('form').submit(); return false;">Искать</button>    
-			</td>
-		</tr>
-	</table>
-	<input type="submit" style="display:none;">
-</form>
+			<div class="row">
+				<div class="col-md-6 col-sm-9" style="margin-bottom:15px;">
+					<input class="form-control input-lg" name="search" type="text" placeholder="Поиск по каталогу">
+				</div>
+				<div class="col-md-3 col-sm-3" style="margin-bottom:15px">
+					<input class="btn btn-primary btn-lg" type="submit" value="Искать">
+				</div>
+			</div>
+	</form>

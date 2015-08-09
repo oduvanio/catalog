@@ -8,7 +8,7 @@
 	},
 	"child":[{
 		"tpl":"*catalog/search.tpl",
-		"jsontpl":"*catalog/search.php?type=search&val={crumb.name}&prod={config.sel}",
+		"jsontpl":"*catalog/search.php?val={crumb.name}&prod={config.sel}",
 		"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
 		"conf_prod":true,
 		"unick":"search",
@@ -21,14 +21,14 @@
 		"child":{
 			"tpl":"*catalog/position.tpl",
 			"autoedittpl":{ "fast":"*Каталог/{crumb.parent.name}/{crumb.name}/" },
-			"jsontpl":"*catalog/catalog.php?type=pos&val={crumb.parent.name}&art={crumb.name}",
+			"jsontpl":"*catalog/position.php?val={crumb.parent.name}&art={crumb.name}",
 			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"}
 		}
 	}],
 	"childs":{
 		"find":{
 			"tpl":"*catalog/find.html",
-			"autosavename":"catalog.search"
+			"autosavename":"catalog"
 		},
 		"change":{
 			"tpl":"*catalog/search.tpl",
