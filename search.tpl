@@ -6,7 +6,7 @@
 		margin-bottom:40px;
 	}
 </style>
-{data.result?data:searchgood?data:searchbad}
+{~length(data.list)?data:searchgood?data:searchbad}
 {searchbad:}
 	<h1>{val}</h1>
 	<p>
@@ -63,11 +63,11 @@
 	{text}
 	{text?data.childs:cat.groups}
 	{cat_childs:}
-		<a style="font-size:16px; line-height:24px;" href="?{crumb.parent}/{title}" title="Показать группу «{title}»">{title}</a>{~last()|:br}
+		<a style="font-size:16px; line-height:24px;" href="?{crumb.parent}/{title}{data.fm}" title="Показать группу «{title}»">{title}</a>{~last()|:br}
 	{cat_childsp:}
 		<li>
 			<span> > </span>
-			<a href="?catalog/{.=:catalog??.}" title="Показать группу «{.=:catalog?infra.conf.catalog.title?.}»">{.=:catalog?infra.conf.catalog.title?.}</a></li>
+			<a href="?catalog/{.=:catalog??.}{data.fm}" title="Показать группу «{.=:catalog?infra.conf.catalog.title?.}»">{.=:catalog?infra.conf.catalog.title?.}</a></li>
 	{br:}<br>
 	{cat_plink:}/{title}
 {search_groups:}
@@ -163,17 +163,13 @@
 
 {pages:}
 	<ul class="pagination">
-		<li class="disabled"><a href="#">&laquo;</a></li>
-		<li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
-		<li><a href="#">2</a></li>
-		<li><a href="#">3</a></li>
-		<li><a href="#">4</a></li>
-		<li><a href="#">5</a></li>
-		<li><a href="#">6</a></li>
-		<li><a href="#">7</a></li>
-		<li><a href="#">8</a></li>
-		<li><a href="#">...</a></li>
-		<li><a href="#">55</a></li>
-		<li><a href="#">&raquo;</a></li>
+		{data.numbers::pagenum}
 	</ul>
+{pagenum:}
+	<li class="{active?:pageact}{empty?:pagedis}">
+		<a onclick="infrajs.scroll='.pagination'" href="?{crumb.parent}/{data.val}{data.fm}page:{num}">{title}</a>
+	</li>
+{pageact:} active
+{pagedis:} disabled
+{space:}&nbsp;
 {cat::}*catalog/cat.tpl

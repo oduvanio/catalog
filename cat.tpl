@@ -37,7 +37,7 @@
 	</script>
 	{groups_group:}
 		<div class="col-sm-6">
-			<a href="?{config.root}/{title}">
+			<a href="?{config.root}/{title}{data.fm}">
 				<table>
 					<tr>
 						<td class="img">

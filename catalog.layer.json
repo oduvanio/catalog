@@ -30,16 +30,6 @@
 			"tpl":"*catalog/find.html",
 			"autosavename":"catalog"
 		},
-		"change":{
-			"tpl":"*catalog/search.tpl",
-			"jsontpl":"*catalog/change.php",
-			"conf_prod":true,
-			"parsedtpl":"{config.sel}",
-			"configtpl":{
-				"root":"{crumb.parent}",
-				"sel":"{config.sel|crumb.name}"
-			}
-		},
 		"producers":{
 			"tpl":"*catalog/producers.tpl",
 			"json":"*catalog/producers.php",

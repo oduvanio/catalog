@@ -1,149 +1,195 @@
 <?php
-/*
-	стандартизированный ответ у поиска $ans
-	is - group producer search change - что именно было найдено
-	parent - array('title'=>'ссылка на родителя'); Для слова Каталог исключение сделано	
-	descr - абзац текста в начале страницы
-	text - большая статья снизу всего
-	name - заголовок длинный и человеческий
-	title - заголовок для FS и для адресной строки
-	list - Массив всех найденых позиций
-*/
+/**
+ * Страница "search" формируется из блоков
+ */
+
 namespace itlife\catalog;
 
 use itlife\files\Xlsx;
 
-$val=infra_toutf(infra_strtolower(strip_tags($_GET['val'])));
-$prod=infra_toutf(infra_strtolower(strip_tags($_GET['prod'])));
-$breadcrumb=array();
+infra_admin_modified();
 
 
-$data=Catalog::init(); // список всей продукции
-
-$ans=array(//Оригинальные значения
-	'val'=>$val,
-	'prod'=>$prod
-);
-$ans['list']=array();
+$filter=new Filter($_GET['val']);
+$val=$filter->getVal();
+$sval=infra_strtolower($val);
 
 
+$ans=array();
+$ans['filter']=array('isold'=>$filter->isold, 'isadd'=>$filter->isadd, 'old'=>$filter->old, 'add'=>$filter->add);//Отладочные данные
 
-$group=&Xlsx::runGroups($data, function (&$group) use (&$val) {
-	if (infra_strtolower($group['name'])==($val)) {
-		return $group;
+
+$fd=$filter->getData(); //Данные от пользователя... грусть печаль... надо как-то всё проверить
+if ($filter->isadd) {
+	$add=$filter->add;
+	if (array_intersect_key($add, array_flip(array('sort', 'direct', 'count')))) {
+		$del = array('page');
+		$fd=array_diff_key($fd, array_flip($del));
 	}
-	if (infra_strtolower($group['title'])==$val) {
-		return $group;
-	}
-});
-$posscount=0;
-if ($group) {
-	$ans['is']='group';
-	$ans['result']=1;
-	$ans['path']=$group['path'];
-	$ans['breadcrumbs']=array_merge(array('catalog'), $group['path']);
-	$ans['name']=$group['name'];//имя группы длинное
-	$ans['title']=$group['title'];//
-	$ans['descr']=@$group['descr']['Описание группы'];
-	$ans['list']=$group['data'];
+}
+if ($filter->isnewval) {
+	$del = array('page');
+	$fd=array_diff_key($fd, array_flip($del));
+}
+Catalog::filterData($fd);//Проверяем данные пользователя
+$filter->setData($fd);
+$fd=array_merge(array( //Прежде чем устанавливать значения по умолчанию нужно удалить бредовые значения
+	"count"=>10,
+	"direct"=>1,
+	"sort"=>"def",
+	"page"=>1
+), $fd);
+$ans['filter']['fd']=$fd;
 
-	if ($group['parent_title']) {
-		$ans['parent']=array('title'=>$group['parent_title']);
-	}
-	if ($prod) {
-		if (!Xlsx::runPoss($group, function (&$pos) use ($prod) {
-			if ($prod==infra_strtolower($pos['Производитель'])) {
-				return true;
-			}
-		}) ) {
-			$prod='';
-			$ans['prod']=$prod;
-		}
-	}
+$ans['fm']=$filter->getMark();
 
-	if ($group['childs']) {
-		$ans['childs']=array();
-		foreach ($group['childs'] as &$v) {
-			if ($prod) {
-				$r=false;
-				Xlsx::runPoss($v, function (&$pos) use ($prod, &$r, &$posscount) {
-					if ($prod==infra_strtolower($pos['Производитель'])) {
-						$posscount++;
-						$r=true;
-					}
-				});
-				if (!$r) {
-					continue;//не найдено неодной нужной позиции, группу не добавляем в список.
-				}
-			} else {
-				Xlsx::runPoss($v, function (&$pos) use (&$posscount) {
-					$posscount++;
-				});
-			}
-			$pos=&Xlsx::runPoss($v, function &(&$pos) {
+
+//1
+$ans['is']=''; //group producer search Что было найдено по запросу val (Отдельный файл is:change)
+$ans['descr']='';//абзац текста в начале страницы';
+$ans['text']=''; //большая статья снизу всего
+$ans['name']=''; //заголовок длинный и человеческий
+
+$ans['breadcrumbs']=array();//Путь где я нахожусь
+$ans['val']=$val;//Запрос поиска
+$ans['title']=$val;//Что именно было найдено название для FS
+
+
+$ans['filteroptions']=array();//Данные для формирования интерфейса фильтрации, опции и тп
+
+$ans['groups']=array();
+$ans['producers']=array();
+
+$ans['numbers']=array(); //Данные для построения интерфейса постраничной разбивки
+$ans['list']=array(); //Массив позиций
+
+
+/*
+	уже есть val, mark, filterdata
+	--cache sval filterdata с исключением
+		--cache sval 
+			1 poss - найти все позиции согласно требованию val
+			Определить is, descr, text, name, breadcrumbs
+		--
+		2 filteroptions - проанализирвать poss и сформировать 
+		3 groups, producers - собрать, отдельно так как меняют val и вообще это самая главная навигация
+		4 Применить filterdata к poss и получить list
+	--
+	5 Посчитать pages отсортировать, урезать
+*/
+
+
+$del = array('sort', 'page', 'direct', 'count');
+$args=array($sval, array_diff_key($fd, array_flip($del)));
+$res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
+	$ans=array();
+	$args=array($sval);
+	$res=Catalog::cache('search.php just list', function ($sval) use ($val) {
+		$ans=array();
+		
+
+		$data=Catalog::init();
+
+		//CHANGE
+		if ($val == 'change') {
+			$poss=array();
+			Xlsx::runPoss($data, function (&$pos) use (&$poss) {
+				$poss[]=&$pos;
+			});
+			$ans['list']=$poss;
+			$ans['is']='change';
+			$ans['title']="Изменения";
+			$ans['descr']="Последнии позиций, у которых изменился текст полного описания.";
+			$ans['name']="Изменения";
+			$ans['list']=array_filter($ans['list'], function (&$pos) {
 				$conf=infra_config();
-				Xlsx::addFiles($pos, $conf['catalog']['dir'], array('producer','article'));
-				if (!$pos['images']) {
+				$dir=infra_theme($conf['catalog']['dir'].$pos['producer'].'/'.$pos['article'].'/');
+				if (!$dir) {
 					return false;
 				}
-				return $pos;
+
+				$pos['time']=filemtime($dir);
+				array_map(function ($file) use (&$pos, $dir) {
+					if ($file{0}=='.') {
+						return;
+					}
+					$t=filemtime($dir.$file);
+					if ($t>$pos['time']) {
+						$pos['time']=$t;
+					}
+				}, scandir($dir));
+				return true;
 			});
-			if ($pos) {
-				$pos=array('article'=>$pos['article'],'producer'=>$pos['producer']);
-			} else {
-				$pos=false;
-			}
-			$ans['childs'][]=array('name'=>$v['name'],'title'=>$v['title'],'pos'=>$pos);
+			usort($ans['list'], function ($a, $b) {
+				if ($a['time']==$b['time']) {
+					return 0;
+				}
+				return ($a['time']>$b['time'])?-1:1;
+			});
+			return $ans;
 		}
-	}
-	//Есть левый prod и перешли в группу где нет этого прода. группа найдена но нет подгрупп и нет позиций
-	//
-	//$ans['text']='*pages/get.php?'.CATDIR.$group['title'];
-} else {
-	$dir=infra_theme(CATDIR.$val.'/');
-	$poss=array();
-	Xlsx::runPoss($data, function (&$pos) use (&$poss, &$val) {
-		if (infra_strtolower(@$pos['producer'])==$val) {
-			$poss[]=&$pos;
-		}
-	});
-
-	if ($dir||sizeof($poss)) {
-		$ans['is']='producer';
-		if (sizeof($poss)) {
-			$name=$poss[0]['producer'];
+		//Группа
+		if (!$sval) {
+			$group=$data;
 		} else {
-			$dir=infra_toutf($dir);
-			$p=explode('/', $dir);
-			$folder=$p[sizeof($p)-2];
-			$name=$folder;
+			$group = &Xlsx::runGroups($data, function (&$group) use (&$sval) {
+				if (infra_strtolower($group['title'])==$sval) {
+					return $group;
+				}
+			});
 		}
-		$ans['parent']=array('title'=>$conf['catalog']['title']);
-		$ans['title']='Производитель '.$name;
-		$ans['result']=1;
-		$ans['descr']=@$producer['Описание группы'];
-		$ans['list']=$poss;
-		$ans['name']=$name;
+		if ($group) {
+			//is!, descr!, text!, name!, breadcrumbs!, title
+			$ans['is']='group';
+			$ans['breadcrumbs']=array_merge(array('catalog'), $group['path']);
+			$ans['name']=$group['name'];//имя группы длинное
+			$ans['descr']=@$group['descr']['Описание группы'];
+			$ans['title']=$group['title'];
 
-		$src = CATDIR.'articals/'. $name . '.tpl';
-		if (!infra_theme($src)) {
-			$src = CATDIR.'articals/'. $name . '.docx';
+			$poss=array();
+			Xlsx::runPoss($group, function (&$pos) use (&$poss) {
+				$poss[]=&$pos;
+			});
+			$ans['list']=$poss;
+			return $ans;
 		}
-		if (!infra_theme($src)) {
-			$src = CATDIR.'articals/'. $name . '.mht';
+
+		//ПРОИЗВОДИТЕЛЬ
+		$dir=infra_theme(CATDIR.$val.'/');
+		$poss=array();
+		Xlsx::runPoss($data, function (&$pos) use (&$poss, &$sval) {
+			if (infra_strtolower(@$pos['producer'])==$sval) {
+				$poss[]=&$pos;
+			}
+		});
+		if ($dir||sizeof($poss)) {
+			//is!, descr!, text!, name!, breadcrumbs!
+			$ans['is']='producer';
+			$ans['list']=$poss;
+			if (sizeof($poss)) {
+				$name=$poss[0]['producer'];
+			} else {
+				$dir=infra_toutf($dir);
+				$p=explode('/', $dir);
+				$folder=$p[sizeof($p)-2];
+				$name=$folder;
+			}
+			
+			$ans['descr']='';
+			$ans['name']=$name;
+			$ans['title']=$name;
+			$ans['breadcrumbs']=array('catalog','producers', $name);
+
+			return $ans;
 		}
-		if (infra_theme($src)) {
-			$ans['text']='*pages/get.php?'. $src;
-		}
-	} else {//ищим позиции подходящие под запрос
+
+		//ПОИСК
+		//ищим позиции подходящие под запрос
+		//is!, descr, text, name, breadcrumbs
 		$ans['is']='search';
-		$ans['parent']=array('title'=>$conf['catalog']['title']);
-		$ans['name']=$_GET['val'];
-		$v=explode(' ', $val);
-		foreach ($v as &$s) {
-			$s=trim($s);
-		}
-
+		$ans['name']=$val;
+		$poss=array();
+		$v=explode(' ', $sval);
 		Xlsx::runPoss($data, function (&$pos) use (&$v, &$poss) {
 			$str=$pos['Артикул'];
 			$str.=' '.implode(' ', $pos['path']);
@@ -161,142 +207,141 @@ if ($group) {
 					return;
 				}
 			}
-
-			unset($pos['parent']);
 			$poss[]=&$pos;
 		});
-		if (sizeof($poss)) {
-			$ans['result']=1;
-			$ans['title']='Поиск: '.$ans['val'];
-			//$ans['descr']='Найдено позиций: '.sizeof($poss);
-			$ans['list']=$poss;
-		}
-		$ans['text']='*pages/get.php?'.CATDIR.$val;
+		
+		$ans['title']='Поиск: '.$ans['val'];
+		$ans['descr']='Найдено позиций: '.sizeof($poss);
+		$ans['list']=$poss;
+		$ans['title']=infra_toFS($ans['val']);
+
+		return $ans;
+	}, $args, isset($_GET['re']));
+	$ans=array_merge($ans, $res);
+	//ЭТАП filters list
+	
+	
+	//Producers
+	$producers=array();
+	array_map(function ($pos) use (&$producers) {
+		$producers[$pos['producer']]++;
+	}, $ans['list']);
+	$ans['producers']=$producers;
+
+	//Filter producer
+	if (!empty($fd['producer'])) {
+		$ans['list']=array_filter($ans['list'], function ($pos) use ($fd) {
+			if ($fd['producer']==$pos['producer']) {
+				return true;
+			}
+			return false;
+		});
 	}
-}
 
+	//Здесь формируются filteroptions
 
-
-
-//BREAD
-$bread=array();
-
-$prods=array();
-if ($ans['is']=='group') {
-	Xlsx::runPoss($group, function &(&$pos) use (&$prods) {
-		$prods[infra_strtolower($pos['Производитель'])]=$pos['Производитель'];
-		$r=null;
-		return $r;
-	});
-} else if ($ans['is']=='search') {
-	infra_forr($ans['list'], function &(&$pos) use (&$prods) {
-		$prods[infra_strtolower($pos['Производитель'])]=$pos['Производитель'];
-		$r=null;
-		return $r;
-	});
-} else {
-	Xlsx::runPoss($data, function (&$pos) use (&$prods) {
-		$prods[infra_strtolower($pos['Производитель'])]=$pos['Производитель'];
-	});
-}
-
-if (($ans['is']!='producer')&&$prod) {
-	$list2=array();
-	for ($i=0, $l=sizeof($ans['list']); $i<$l; $i++) {
-		if ($prod==infra_strtolower($ans['list'][$i]['Производитель'])) {
-			$list2[]=$ans['list'][$i];
-		}
-	}
-	$ans['list']=$list2;
-	//$ans['descr'].='<p>Найдено позиций: '.($posscount+sizeof($ans['list'])).'</p>';
-} else {
-	//$ans['descr'].='<p>Найдено позиций: '.($posscount+sizeof($ans['list'])).'</p>';
-}
-
-$ans['count']=$posscount+sizeof($ans['list']);
-
-$prodpage=isset($prods[$val]);
-if (!$prodpage) {
-	$conf=infra_config();
-	if (infra_theme($conf['catalog']['dir'].$val.'/')) {
-		$prodpage=true;
-	}
-}
-
-if ($prod) {
-	$ans['sel']=$prods[$prod];//Правильное имя параметра sel - клик пользователя
-	if (!$ans['sel']) {
-		$prod='';
-	}
-}
-if ($prodpage) {
-	$ans['sel']=$prods[$val];//Правильное имя параметра sel - клик пользователя
-}
-
-$prods=array_values($prods);
-
-
-$bread['prodpage']=$prodpage;
-
-if ($prodpage) {
-	$prod=$val;
-	$prods=array();
-}
-$groups=array();
-if ($ans['sel']) {//Выбран производитель
-	if ($ans['is']=='group' && sizeof($ans['path'])<2) {//Группа 1ого уровня
-		infra_forr($data['childs'], function &(&$g) use (&$groups, $prod) {
-			Xlsx::runPoss($g, function &(&$pos) use (&$g, &$groups, $prod) {
-				$p=mb_strtolower($pos['producer']);
-				if ($p==$prod) {
-					$title=$g['title'];
-					$name=$g['descr']['Наименование'];
-					if (!$name) {
-						$name=$title;
-					}
-					if (!$title) {
-						return;
-					}
-					$groups[]=array('name'=>$name, 'title'=>$title);
-					return false;
+	//Groups
+	if (sizeof($ans['list'])) {//Нужно найти общую группу в path и показать её подгруппы
+		$subgroups=Catalog::cache('search.php subgroups', function () {
+			//Микров вставка всё ради того чтобы не пользоваться $data на этом уровне
+			//данный кэш один для любой страницы каталога
+			$subgroups=array();
+			$data=Catalog::init();
+			Xlsx::runGroups($data, function ($group) use (&$subgroups) {
+				if (empty($group['childs'])) {
+					return;
 				}
-				$r=null;
-				return $r;
+				$subgroup=array();
+				array_map(function ($g) use (&$subgroup) {
+					$subgroup[]=array('title'=>$g['title'],'name'=>$g['name']);
+				}, $group['childs']);
+				$subgroups[$group['title']]=$subgroup;
 			});
-			$r=null;
-			return $r;
+			return $subgroups;
+		});
+		$groups=array();
+		foreach ($ans['list'] as &$pos) {
+			$path=$pos['path'];
+			foreach ($ans['list'] as &$pos) {
+				foreach ($pos['path'] as $v) {
+					if (!isset($groups[$v])) {
+						$groups[$v]=array('pos'=>$pos, 'count'=>0);
+					};
+					$groups[$v]['count']++;
+				}
+				$rpath=array();
+				foreach ($path as $k => $p) {
+					if ($pos['path'][$k]==$p) {
+						$rpath[$k]=$p;
+					} else {
+						break;
+					}
+				}
+				$path=$rpath;
+			}
+			break;
+		}
+		
+		if (!sizeof($path)) {
+			$conf=infra_config();
+			$groupchilds=$subgroups[$conf['catalog']['title']];
+		} else {
+			$g=$path[sizeof($path)-1];
+			if (isset($subgroups[$g])) {
+				$groupchilds=$subgroups[$g];
+			} else {
+				$groupchilds=false;
+			}
+		}
+		if ($groupchilds) {
+			$ans['childs']=array();
+			foreach ($groupchilds as $g) {
+				//0 упоминаний
+				if (!$groups[$g['title']]) {
+					continue;
+				}
+				$pos=$groups[$g['title']]['pos'];
+				$pos=array('article'=>$pos['article'],'producer'=>$pos['producer']);
+				$ans['childs'][]=array_merge($g, array('pos'=>$pos,'count'=>$groups[$g['title']]['count']));
+			}
+		}
+	}
+	$ans['count']=sizeof($ans['list']);
+	return $ans;
+}, $args, isset($_GET['re']));
+$ans=array_merge($ans, $res);
+//ЭТАП numbers list
+
+
+if ($fd['sort']!='def') {
+	if ($fd['sort']=='name') {
+		usort($ans['list'], function ($a, $b) {
+			$a=$a['Наименование'];
+			$b=$b['Наименование'];
+			if ($a == $b) {
+		        return 0;
+			}
+		    return ($a < $b) ? -1 : 1;
 		});
 	}
 }
-
-$bread['prods']=$prods;
-
-if ($ans['sel'] && $ans['is']!='producer') {
-	unset($ans['title']);
-	unset($ans['text']);
-	unset($ans['descr']);
-	if (!$ans['list']) {
-		if ($ans['is']=='group') {
-			$list=array();
-			Xlsx::runPoss($group, function (&$pos) use (&$list, &$ans) {
-				if ($pos['Производитель']!=$ans['sel']) {
-					return;
-				}
-				$list[]=$pos;
-			});
-			$ans['list']=$list;
-		}
-	}
+if (!$fd['direct']) {
+	$ans['list']=array_reverse($ans['list']);
 }
-if (sizeof($groups)==1) {
-	$groups=array();
-}
-$bread['groups']=$groups;
-$ans['bread']=$bread;
 
 
-if (isset($ans['text'])) {
-	$ans['text']=infra_loadTEXT($ans['text']);
+$pages=(int)ceil(sizeof($ans['list'])/$fd['count']);
+if ($pages<$fd['page']) {
+	$fd['page']=$pages;
 }
+
+$ans['numbers']=Catalog::numbers($fd['page'], $pages, 13);
+
+$ans['list']=array_slice($ans['list'], ($fd['page']-1)*$fd['count'], $fd['count']);
+
+
+
+$conf=infra_config();
+$ans['text']=infra_loadTEXT('*files/get.php?'.$conf['catalog']['dir'].'articals/'.$ans['title']);//Изменение текста не отражается как изменение каталога, должно быть вне кэша
 
 return infra_ret($ans);
