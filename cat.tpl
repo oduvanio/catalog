@@ -37,7 +37,7 @@
 	</script>
 	{groups_group:}
 		<div class="col-sm-6">
-			<a href="?{config.root}/{title}{data.fm}">
+			<a onclick="infrajs.scroll='#pathCatalog'" href="?{config.root}/{title}{:msrsave}">
 				<table>
 					<tr>
 						<td class="img">
@@ -51,3 +51,20 @@
 			</a>
 		</div>
 		{gimg:}<img src="?*imager/imager.php?src={infra.conf.catalog.dir}{pos.producer}/{pos.article}/&w=100&h=80">
+{msradd:}&m={data.m}:
+{mcladd:}&m={infra.Crumb.get.m}:
+{msrsave:}{data.m?:msrsaveatr}
+	{msrsaveatr:}&m={data.m}
+{mclsave:}{infra.Crumb.get.m?:mclsaveatr}
+	{mclsaveatr:}&m={infra.Crumb.get.m}
+
+{breadcrumbs:}
+	<ul class="breadcrumb">
+		{::brcrumb}
+	</ul>
+	{brcrumb:}
+		{~last()?:crumblast?:crumb}
+	{crumb:}
+		<li><a href="?catalog/{href}{:msrsave}">{title}</a></li>
+	{crumblast:}
+		<li class="active">{title}</li>

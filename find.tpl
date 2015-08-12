@@ -1,6 +1,7 @@
-
+{root:}
+	{data.breadcrumbs:cat.breadcrumbs}
 	<h1>Поиск по каталогу</h1>
-	<form class="form-horizontal" onsubmit="
+	<form style="margin-bottom:30px" class="form-horizontal" onsubmit="
 		var val=$(this).find('[type=text]').val();
 		val=infra.forFS(val);
 		var layer=infrajs.find('unick','catalog');
@@ -19,3 +20,5 @@
 				</div>
 			</div>
 	</form>
+	{data.childs:cat.groups}
+{cat::}*catalog/cat.tpl

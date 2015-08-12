@@ -6,6 +6,7 @@ use itlife\files\Xlsx;
 
 $ans=array();
 
+
 //На главной странице каталога показываются и может быть эти даные используются для показа групп на главной траницы
 
 $data=Catalog::init();
@@ -32,4 +33,7 @@ foreach ($data as $k => &$gr) {
 }
 $ans['childs']=array_values($data);
 $ans['menu']=infra_loadJSON('*catalog/rubrics.json');
+$ans['breadcrumbs']=array();
+$conf=infra_config();
+$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
 return infra_ret($ans);

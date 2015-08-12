@@ -21,21 +21,23 @@ class Filter
 	private $sym = ':';
 	//Если метка есть а даных нет считаем что метка устарела.
 	//Недопускаем ситуации что метка появилась до появления привязанных к ней данных
-	public $isold = true; //Если метка устарела значит какие данные мы не знаем...
+	
+	public $old = array();
+	public $add = array();
 	public $isadd = false;
-	public $isnewval = false;
-	public $old=array();
-	public $add=array();
-
+	public $isold = false;
+	public $isoutdate=null;
+	public $notice = '';//Сообщение о проблеме
 	private $mark = '';
 	private $data = array();
-	private $retmark = '';
-
-	private $len = 2;
+	private $warrantytime = 0; //Ссылка не перезаписывается в течении 2х месяцев
 	private $prefix = 'env-';
+	private $len = 1; //Хэшмарк стартовая длина
+	private $raise = 4; //Хэшмарк На сколько символов разрешено увеличивать хэш
+	private $note = 3;//Хэшмарк При увеличении на сколько записывается сообщение в лог
 	public function getMark()
 	{
-		return $this->retmark;
+		return $this->mark;
 	}
 	public function getVal()
 	{
@@ -56,34 +58,28 @@ class Filter
 			}
 		}
 		$this->data=$newdata;
-		if (!$newdata) {
-			$this->mark='';
-		} else {
-			$this->mark=$this->makeMark($this->data);
-		}
-		$this->retmark=$this->sym.$this->mark.$this->sym;
+		$this->mark=$this->makeMark($this->data);
 		
 	}
-	public function __construct($getval)
+	public function __construct($mark)
 	{
-		$getval=infra_toutf(strip_tags($getval));
-		$this->getval=$getval;
-
-		$r=explode($this->sym, $getval);
-		$this->val=infra_forFS(array_shift($r));
+		$this->warrantytime=60*60*24*60;
+		$mark=infra_toutf(strip_tags($mark));
+		$r=explode($this->sym, $mark);
 		$this->mark=array_shift($r);
 
-		if (!$this->mark) {
-			$this->mark='';
-		} else {
+		if ($this->mark!='') {
 			$data=infra_mem_get($this->prefix.$this->mark);
 			if (!$data || !is_array($data['data'])) {
 				$this->mark='';
-				$this->isold=false;
 			} else {
-				if ($this->val!=$data['val']) {
-					$this->isnewval=true;
+				if (!$data['time']) {
+					$data['time']=time();
 				}
+				$this->isold=true;
+
+				$this->isoutdate=(time()>$data['time']+$this->warrantytime);
+
 				$this->old=$data['data'];
 			}
 		}
@@ -104,13 +100,49 @@ class Filter
 	private function makeMark($data)
 	{
 		ksort($data);
+		if (!$data) {
+			return '';
+		}
 		$key=md5(serialize($data));
-		$mark=substr($key, 0, $this->len);
 		$that=$this;
-		infra_once($this->prefix.$mark, function () use ($data, $that, $mark) {
+
+		$mark=infra_once($this->prefix.$key, function () use ($data, $that, $key) {
+			$isoutdate=true;
+			$raise=$this->raise; //На сколько символов разрешено увеличивать хэш
+			$note=$this->note;//При увеличении на сколько записывается сообщение в лог
+
+			$len=$this->len-1;
+			while ($isoutdate&&$len<$this->len+$raise) {
+				$len++;
+				$mark=substr($key, 0, $len);
+				$otherdata=infra_mem_get($that->prefix.$mark);
+				if ($otherdata && is_array($otherdata['data']) && $otherdata['time']) {
+					if ($otherdata['data']==$data) {
+						$isoutdate=false;//Такая метка уже есть и она правильная
+					} else {
+						//Решается судьба старой метки
+						$isoutdate=(time()>$data['time']+$this->warrantytime);
+					}
+				} else {
+					$isoutdate=false;
+				}
+			}
+
+			if ($len>=$this->len+$note) {
+				$that->notice='Filter adding to hash '.($len-$this->len).' symbol(s) for save time warranty '.print_r($data, true);
+				error_log($that->notice);
+			}
+			if ($isoutdate) {
+				//Все метки актуальны... перезаписываем первую
+				$that->error='Filter rewrite actual hashmark';
+				error_log($that->error);
+				$mark=substr($key, 0, $this->len);
+			}
 			infra_mem_set($that->prefix.$mark, array(
-				'val'=>$that->val,
-				'data'=>$data));
+				'time'=>time(),
+				'data'=>$data
+			));
+			return $mark;
 		});
 		return $mark;
 	}

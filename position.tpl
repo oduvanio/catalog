@@ -75,14 +75,14 @@
 			Задать вопрос о {Производитель} {Артикул} можно с помощью <span class="a showContacts">формы для сообщений</span> или c помощью других <a href="?contacts">контактов</a>.
 		</p>
 		<p>
-			Перейти к группе <a href="?{crumb.parent.parent}/{group_title}">{group_title}</a><br>
+			Перейти к группе <a onclick="infrajs.scroll='.pagination'" href="?{crumb.parent.parent}/{group_title}{:cat.mclsave}">{group_title}</a><br>
 			
 		</p>
 	</div>
 {poscost:}
 	<div class="alert alert-success">
 		Цена: <span style="font-size:20px">{~cost(Цена)} руб.</span><br>
-		{Наличие?: Есть в наличие.} По вопросам приобретения обращайтесь по телефонам в <a href="?contacts">контактах</a>.
+		{Наличие?: Есть в наличии.} По вопросам приобретения обращайтесь по телефонам в <a href="?contacts">контактах</a>.
 	</div>
 {files:}
 	<h2>Файлы для {Продажа} {Производитель} {Артикул} </h2>
@@ -112,7 +112,7 @@
 		</a>
 {producer:}
 	<div style="float:right; background-color:white; padding:10px 10px 10px 10px; margin-left:5px; margin-bottom:5px;">
-		<a title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}/{producer}">
+		<a onclick="infrajs.scroll='.pagination'" title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}/{producer}{cat.mclsave}">
 			<img style="margin-left:5px" src="?*imager/imager.php?w=160&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty.png" />
 		</a>
 	</div>
@@ -120,3 +120,4 @@
 		{producer.Страна|}
 	</div>
 	-->
+{cat::}*catalog/cat.tpl

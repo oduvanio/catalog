@@ -9,39 +9,23 @@ use itlife\files\Xlsx;
 
 infra_admin_modified();
 
+$val=infra_forFS(infra_toutf(strip_tags($_GET['val'])));
 
-$filter=new Filter($_GET['val']);
-$val=$filter->getVal();
 $sval=infra_strtolower($val);
 
 
-$ans=array();
-$ans['filter']=array('isold'=>$filter->isold, 'isadd'=>$filter->isadd, 'old'=>$filter->old, 'add'=>$filter->add);//Отладочные данные
+$md=Catalog::getFilter($ans);
 
 
-$fd=$filter->getData(); //Данные от пользователя... грусть печаль... надо как-то всё проверить
-if ($filter->isadd) {
-	$add=$filter->add;
-	if (array_intersect_key($add, array_flip(array('sort', 'direct', 'count')))) {
-		$del = array('page');
-		$fd=array_diff_key($fd, array_flip($del));
+
+if (isset($_GET['page'])) {
+	$ans['page']=(int)$_GET['page'];
+	if ($ans['page']<1) {
+		$ans['page']=1;
 	}
+} else {
+	$ans['page']=1;
 }
-if ($filter->isnewval) {
-	$del = array('page');
-	$fd=array_diff_key($fd, array_flip($del));
-}
-Catalog::filterData($fd);//Проверяем данные пользователя
-$filter->setData($fd);
-$fd=array_merge(array( //Прежде чем устанавливать значения по умолчанию нужно удалить бредовые значения
-	"count"=>10,
-	"direct"=>1,
-	"sort"=>"def",
-	"page"=>1
-), $fd);
-$ans['filter']['fd']=$fd;
-
-$ans['fm']=$filter->getMark();
 
 
 //1
@@ -80,8 +64,8 @@ $ans['list']=array(); //Массив позиций
 
 
 $del = array('sort', 'page', 'direct', 'count');
-$args=array($sval, array_diff_key($fd, array_flip($del)));
-$res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
+$args=array($sval, array_diff_key($md, array_flip($del)));
+$res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 	$ans=array();
 	$args=array($sval);
 	$res=Catalog::cache('search.php just list', function ($sval) use ($val) {
@@ -126,6 +110,10 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 				}
 				return ($a['time']>$b['time'])?-1:1;
 			});
+			$conf=infra_config();
+			$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
+			$menu=infra_loadJSON('*catalog/rubrics.json');
+			$ans['breadcrumbs'][]=array('href'=>'change','title'=>$menu['change']['title']);
 			return $ans;
 		}
 		//Группа
@@ -141,7 +129,12 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 		if ($group) {
 			//is!, descr!, text!, name!, breadcrumbs!, title
 			$ans['is']='group';
-			$ans['breadcrumbs']=array_merge(array('catalog'), $group['path']);
+			$conf=infra_config();
+			$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
+			array_map(function ($p) use (&$ans) {
+				$ans['breadcrumbs'][]=array('href'=>$p,'title'=>$p);
+			}, $group['path']);
+
 			$ans['name']=$group['name'];//имя группы длинное
 			$ans['descr']=@$group['descr']['Описание группы'];
 			$ans['title']=$group['title'];
@@ -178,7 +171,11 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 			$ans['descr']='';
 			$ans['name']=$name;
 			$ans['title']=$name;
-			$ans['breadcrumbs']=array('catalog','producers', $name);
+			$conf=infra_config();
+			$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
+			$menu=infra_loadJSON('*catalog/rubrics.json');
+			$ans['breadcrumbs'][]=array('href'=>'producers','title'=>$menu['producers']['title']);
+			$ans['breadcrumbs'][]=array('href'=>$name,'title'=>$name);
 
 			return $ans;
 		}
@@ -209,12 +206,16 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 			}
 			$poss[]=&$pos;
 		});
+		$conf=infra_config();
+		$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
+		$menu=infra_loadJSON('*catalog/rubrics.json');
+
+		$ans['breadcrumbs'][]=array('href'=>'find','title'=>$menu['find']['title']);
+		$ans['breadcrumbs'][]=array('href'=>$val,'title'=>$val);
 		
-		$ans['title']='Поиск: '.$ans['val'];
 		$ans['descr']='Найдено позиций: '.sizeof($poss);
 		$ans['list']=$poss;
-		$ans['title']=infra_toFS($ans['val']);
-
+		$ans['title']=infra_forFS($val);
 		return $ans;
 	}, $args, isset($_GET['re']));
 	$ans=array_merge($ans, $res);
@@ -229,9 +230,9 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 	$ans['producers']=$producers;
 
 	//Filter producer
-	if (!empty($fd['producer'])) {
-		$ans['list']=array_filter($ans['list'], function ($pos) use ($fd) {
-			if ($fd['producer']==$pos['producer']) {
+	if (!empty($md['producer'])) {
+		$ans['list']=array_filter($ans['list'], function ($pos) use ($md) {
+			if ($md['producer']==$pos['producer']) {
 				return true;
 			}
 			return false;
@@ -313,8 +314,8 @@ $ans=array_merge($ans, $res);
 //ЭТАП numbers list
 
 
-if ($fd['sort']!='def') {
-	if ($fd['sort']=='name') {
+if ($md['sort']!='def') {
+	if ($md['sort']=='name') {
 		usort($ans['list'], function ($a, $b) {
 			$a=$a['Наименование'];
 			$b=$b['Наименование'];
@@ -325,19 +326,19 @@ if ($fd['sort']!='def') {
 		});
 	}
 }
-if (!$fd['direct']) {
+if (!$md['direct']) {
 	$ans['list']=array_reverse($ans['list']);
 }
 
 
-$pages=(int)ceil(sizeof($ans['list'])/$fd['count']);
-if ($pages<$fd['page']) {
-	$fd['page']=$pages;
+$pages=(int)ceil(sizeof($ans['list'])/$md['count']);
+if ($pages<$ans['page']) {
+	$ans['page']=$pages;
 }
 
-$ans['numbers']=Catalog::numbers($fd['page'], $pages, 13);
+$ans['numbers']=Catalog::numbers($ans['page'], $pages, 11);
 
-$ans['list']=array_slice($ans['list'], ($fd['page']-1)*$fd['count'], $fd['count']);
+$ans['list']=array_slice($ans['list'], ($ans['page']-1)*$md['count'], $md['count']);
 
 
 

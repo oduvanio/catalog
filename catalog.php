@@ -68,7 +68,7 @@ class Catalog
 			} else if (!$isrspace&&$islspace) {
 				$ar[]=0;
 				for ($i=0; $i<$plen-1; $i++) {
-					$ar[]=$pages-$plen/2+$i-3;
+					$ar[]=$pages-$plen/2+$i-4;
 				}
 			} else if ($isrspace&&$islspace) {
 				$nums=$plen/2-2;//Количество цифр показываемых сбоку от текущей когда есть $islspace далее текущая
@@ -94,6 +94,9 @@ class Catalog
 			}
 			return true;
 		});
+		if (sizeof($ar)<2) {
+			return false;
+		}
 		$prev=array('num'=>$page-1,'title'=>'&laquo;');
 		if ($page<=1) {
 			$prev['empty']=true;
@@ -106,44 +109,57 @@ class Catalog
 		array_push($ar, $next);
 		return $ar;
 	}
-	/*
-	 * Проверяем данные пользователя, удаляем лишнее, проверяем диапазоны и тп
-	 *
-	 */
-	public static function filterData(&$fd)
+	public static function getFilter(&$ans)
 	{
-		$fd = array_intersect_key($fd, array_flip(array('sort','direct','page','count','producer')));
-		if (isset($fd['sort'])) {
-			$fd['sort']=(string)$fd['sort'];// price, name, def, group, producer
-			if (!in_array($fd['sort'], array('def', 'name', 'group', 'producer'))) {
-				unset($fd['sort']);
+		if (!isset($_GET['m'])) {
+			$_GET['m']='';
+		}
+		$filter=new Filter($_GET['m']);
+		$md=$filter->getData(); //Данные от пользователя... грусть печаль... надо как-то всё проверить
+		
+		$md = array_intersect_key($md, array_flip(array('sort','direct','count','producer','settings')));
+		if (isset($md['sort'])) {
+			$md['sort']=(string)$md['sort'];// price, name, def, group, producer
+			if (!in_array($md['sort'], array('def', 'name', 'group', 'producer'))) {
+				unset($md['sort']);
 			}
 		} else {
-			unset($fd['sort']);
+			unset($md['sort']);
 		}
-		if (isset($fd['direct'])) {
-			if (!is_bool($fd['direct'])) {
-				unset($fd['direct']);
+		if (isset($md['direct'])) {
+			if (!is_bool($md['direct'])) {
+				unset($md['direct']);
 			}
 		} else {
-			unset($fd['direct']);
+			unset($md['direct']);
 		}
-		if (isset($fd['page'])) {
-			$fd['page']=(int)$fd['page'];
-			if ($fd['page']<1) {
-				unset($fd['page']);
-			}
-		} else {
-			unset($fd['page']);
-		}
-		if (isset($fd['count'])) {
-			$fd['count']=(int)$fd['count'];
+		
+		if (isset($md['count'])) {
+			$md['count']=(int)$md['count'];
 
-			if ($fd['count']<1) {
-				unset($fd['count']);
+			if ($md['count']<1) {
+				unset($md['count']);
 			}
 		} else {
-			unset($fd['count']);
+			unset($md['count']);
 		}
+
+		$filter->setData($md);
+
+		$ans['m']=$filter->getMark();
+		$md=$filter->getData();
+		
+		
+		$ans['filter']=array('isold'=>$filter->isold, 'isadd'=>$filter->isadd, 'old'=>$filter->old, 'add'=>$filter->add);//Отладочные данные
+		$ans['filter']['md']=$md;
+		//Прежде чем устанавливать значения по умолчанию нужно удалить бредовые значения
+		$md=array_merge(array(
+			"settings"=>'',
+			"count"=>5,
+			"direct"=>true,
+			"sort"=>"def"
+		), $md);
+		$ans['md']=$md;
+		return $md;
 	}
 }

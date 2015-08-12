@@ -1,6 +1,6 @@
 {
 	"tpl":"*catalog/rubrics.tpl",
-	"json":"*catalog/rubrics.php",
+	"jsontpl":"*catalog/rubrics.php",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
 	"unick":"catalog",
 	"configtpl":{
@@ -8,14 +8,12 @@
 	},
 	"child":[{
 		"tpl":"*catalog/search.tpl",
-		"jsontpl":"*catalog/search.php?val={crumb.name}&prod={config.sel}",
+		"jsontpl":"*catalog/search.php?val={crumb.name}&m={infra.Crumb.get.m}&page={infra.Crumb.get.p}",
 		"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
 		"conf_prod":true,
 		"unick":"search",
-		"parsedtpl":"{config.sel}",
 		"configtpl":{
-			"root":"{crumb.parent}",
-			"sel":"{config.sel|crumb.name}"
+			"root":"{crumb.parent}"
 		}
 	},{
 		"child":{
@@ -27,7 +25,11 @@
 	}],
 	"childs":{
 		"find":{
-			"tpl":"*catalog/find.html",
+			"jsontpl":"*catalog/find.php",
+			"configtpl":{
+				"root":"{crumb.parent}"
+			},
+			"tpl":"*catalog/find.tpl",
 			"autosavename":"catalog"
 		},
 		"producers":{
