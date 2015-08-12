@@ -6,7 +6,13 @@
         "name": "oduvanio",
         "email": "info@itlife-studio.ru"
     }],
-    "require": {
-		"oduvanio/catalog":"1.0"
+    "require":{
+    	"itlife/files":"~1",
+        "itlife/imager":"~1"
+    },
+    "autoload":{
+        "psr-4":{
+            "itlife\\catalog\\":"/"
+        }
     }
 }

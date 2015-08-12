@@ -2,23 +2,24 @@
 /**
  * Выводит список производителей с количеством позиций
  */
-infra_require('*files/xls.php');
-infra_require('*catalog/catalog.inc.php');
-$type=infra_strtolower(@$_GET['type']);
+namespace itlife\catalog;
+use itlife\files\Xlsx;
+
 infra_admin_modified();
-$ans=infra_cache(array($conf['catalog']['dir']), 'producers.php', function ($type) {
+
+$list=Catalog::cache('producers.php', function () {
 	$ans=array();
 	$conf=infra_config();
-	if ($type=='producers') {
-		$data=cat_init();
-		$prods=array();
-		xls_runPoss($data, function (&$pos) use (&$prods) {
-			@$prods[$pos['Производитель']]++;
-		});
-		arsort($prods, SORT_NUMERIC);
-		$ans['producers']=$prods;
-	}
-	return $ans;
-}, array($type), isset($_GET['re']));
+	
+	$data=Catalog::init();
+	$prods=array();
+	Xlsx::runPoss($data, function (&$pos) use (&$prods) {
+		@$prods[$pos['Производитель']]++;
+	});
+	arsort($prods, SORT_NUMERIC);
+	return $prods;
+});
 
-return infra_err($ans, 'Wrong type');
+$ans['list']=$list;
+
+return infra_ret($ans);
