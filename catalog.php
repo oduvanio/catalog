@@ -5,12 +5,11 @@ use itlife\files\Xlsx;
 
 class Catalog
 {
+	public static $filter=null;
 	public static function init()
 	{
 		return self::cache('cat_init', function () {
-			$conf=infra_config();
-			$data=&Xlsx::init($conf['catalog']['dir'], array('more' => true, 'Имя файла' => $conf['catalog']['Имя файла']));
-			return $data;
+			return Extend::init();
 		});
 	}
 	public static function cache($name, $call, $args = array(), $re = null)
@@ -68,7 +67,7 @@ class Catalog
 			} else if (!$isrspace&&$islspace) {
 				$ar[]=0;
 				for ($i=0; $i<$plen-1; $i++) {
-					$ar[]=$pages-$plen/2+$i-4;
+					$ar[]=$pages-$plen/2+$i-3;
 				}
 			} else if ($isrspace&&$islspace) {
 				$nums=$plen/2-2;//Количество цифр показываемых сбоку от текущей когда есть $islspace далее текущая
@@ -109,57 +108,25 @@ class Catalog
 		array_push($ar, $next);
 		return $ar;
 	}
-	public static function getFilter(&$ans)
+	public static function getFilter(&$ans = array())
 	{
-		if (!isset($_GET['m'])) {
-			$_GET['m']='';
-		}
-		$filter=new Filter($_GET['m']);
-		$md=$filter->getData(); //Данные от пользователя... грусть печаль... надо как-то всё проверить
-		
-		$md = array_intersect_key($md, array_flip(array('sort','direct','count','producer','settings')));
-		if (isset($md['sort'])) {
-			$md['sort']=(string)$md['sort'];// price, name, def, group, producer
-			if (!in_array($md['sort'], array('def', 'name', 'group', 'producer'))) {
-				unset($md['sort']);
-			}
-		} else {
-			unset($md['sort']);
-		}
-		if (isset($md['direct'])) {
-			if (!is_bool($md['direct'])) {
-				unset($md['direct']);
-			}
-		} else {
-			unset($md['direct']);
-		}
-		
-		if (isset($md['count'])) {
-			$md['count']=(int)$md['count'];
+		$mark=infra_toutf(infra_seq_get($_GET, infra_seq_right('m')));
+		$filter=Filter::getInstance($mark);
+		$fd=$filter->getData();
 
-			if ($md['count']<1) {
-				unset($md['count']);
+		$admit=array_keys(Extend::$fd);
+		$fd = array_intersect_key($fd, array_flip($admit));
+
+		Extend::filterData($fd);
+		foreach ($fd as $k => $v) {
+			if (is_null($v)) {
+				unset($fd[$k]); //Удаление
 			}
-		} else {
-			unset($md['count']);
 		}
 
-		$filter->setData($md);
-
-		$ans['m']=$filter->getMark();
-		$md=$filter->getData();
-		
-		
-		$ans['filter']=array('isold'=>$filter->isold, 'isadd'=>$filter->isadd, 'old'=>$filter->old, 'add'=>$filter->add);//Отладочные данные
-		$ans['filter']['md']=$md;
-		//Прежде чем устанавливать значения по умолчанию нужно удалить бредовые значения
-		$md=array_merge(array(
-			"settings"=>'',
-			"count"=>5,
-			"direct"=>true,
-			"sort"=>"def"
-		), $md);
-		$ans['md']=$md;
-		return $md;
+		$ans['m']=$filter->setData($fd);
+		$fd=array_merge(Extend::$fd, $fd);
+		$ans['fd']=$fd;
+		return $fd;
 	}
 }

@@ -3,9 +3,7 @@
 	<tr><td></td><td>Фразы</td></tr>
 	{data.stat.users::statuser}
 </table>
-<p>
-	<a href="?{crumb.parent}">Каталог</a>
-</p>
+{data.menu:cat.menu}
 {data.text}
 {statuser:}
 	<tr>
@@ -16,3 +14,4 @@
 	</tr>
 {statitem:}<a href="?{crumb.parent}/{val}" title="от {~date(:d.m.Y,time)}">{val}</a><sup>{count}</sup>{~last()??:statsep}
 {statsep:} |  
+{cat::}*catalog/cat.tpl

@@ -2,7 +2,7 @@
 namespace itlife\catalog;
 
 $ans=array();
-
+$ans['menu']=infra_loadJSON('*catalog/menu.json');
 $submit=!empty($_GET['submit']); // сбор статистики
 
 
@@ -28,6 +28,7 @@ if (!$val) {
 }
 infra_cache_no();
 $val=infra_forFS($val);
+$val=infra_toutf($val);
 $id=infra_view_getCookie('cat_id');
 $time=infra_view_getCookie('cat_time');
 if (!$time||!$id||$time!=$data['time']) {
@@ -55,9 +56,8 @@ foreach ($user['list'] as $k => $v) {
 	}
 }
 $user['list']=array_values($user['list']);
-$search=infra_loadJSON('*catalog/catalog.php?type=search&val='.$val);
-$count=sizeof($search['list']);
-array_unshift($user['list'], array('val' => $val,'time' => time(),'count' => $count));
+$search=infra_loadJSON('*catalog/search.php?val='.$val);
+array_unshift($user['list'], array('val' => $val,'time' => time(),'count' => $search['count']));
 
 if (sizeof($user['list'])>10) {
 	$user['list']=array_slice($user['list'], 0, 10);

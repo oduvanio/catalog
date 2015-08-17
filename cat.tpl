@@ -2,27 +2,20 @@
 	<style>
 		.catgrouplist .img {
 			vertical-align:middle;
+			text-align:center;
 			width:100px;
 			padding:4px;
 			height:90px;
-			text-align:center;
 			background-color:white;
 		}
 		.catgrouplist .name {
 			text-align:left;
-			font-family:Premjera;
 			vertical-align:middle;
 			font-size:20px;
-			padding-left:4px;
-		}
-		.catgrouplist a {
-			//display:block;
-			//width:300px;
-			//float:left;
 		}
 		
 	</style>
-	<div class="catgrouplist">
+	<div class="catgrouplist row">
 		{::groups_group}
 	</div>
 	<script>
@@ -37,7 +30,7 @@
 	</script>
 	{groups_group:}
 		<div class="col-sm-6">
-			<a onclick="infrajs.scroll='#pathCatalog'" href="?{config.root}/{title}{:msrsave}">
+			<a onclick="infrajs.scroll='#pathCatalog'" href="?{config.root}/{title}{:filter.set}">
 				<table>
 					<tr>
 						<td class="img">
@@ -51,13 +44,6 @@
 			</a>
 		</div>
 		{gimg:}<img src="?*imager/imager.php?src={infra.conf.catalog.dir}{pos.producer}/{pos.article}/&w=100&h=80">
-{msradd:}&m={data.m}:
-{mcladd:}&m={infra.Crumb.get.m}:
-{msrsave:}{data.m?:msrsaveatr}
-	{msrsaveatr:}&m={data.m}
-{mclsave:}{infra.Crumb.get.m?:mclsaveatr}
-	{mclsaveatr:}&m={infra.Crumb.get.m}
-
 {breadcrumbs:}
 	<ul class="breadcrumb">
 		{::brcrumb}
@@ -65,6 +51,16 @@
 	{brcrumb:}
 		{~last()?:crumblast?:crumb}
 	{crumb:}
-		<li><a href="?catalog/{href}{:msrsave}">{title}</a></li>
+		<li><a href="?catalog{href?:/}{href}{:filter.set}">{title}</a></li>
 	{crumblast:}
 		<li class="active">{title}</li>
+{filter::}*catalog/filter.tpl
+{/:}/
+{menu:}
+	<div style="margin-top:10px">
+		<ul class="nav nav-pills">
+			{::items}	
+		</ul>
+	</div>
+	{items:}
+		<li role="presentation"><a href="?{config.root}/{~key}">{title}</a></li>

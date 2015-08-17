@@ -35,10 +35,6 @@ class Filter
 	private $len = 1; //Хэшмарк стартовая длина
 	private $raise = 4; //Хэшмарк На сколько символов разрешено увеличивать хэш
 	private $note = 3;//Хэшмарк При увеличении на сколько записывается сообщение в лог
-	public function getMark()
-	{
-		return $this->mark;
-	}
 	public function getVal()
 	{
 		return $this->val;
@@ -52,22 +48,24 @@ class Filter
 		if (!is_array($newdata)) {
 			$newdata=array();
 		}
-		foreach ($newdata as $k => $v) {
-			if (is_null($v)) {
-				unset($newdata[$k]); //Удаление
-			}
-		}
 		$this->data=$newdata;
 		$this->mark=$this->makeMark($this->data);
-		
+		return $this->mark;
 	}
-	public function __construct($mark)
+	public static $instances=array();
+	public static function getInstance($mark)
 	{
-		$this->warrantytime=60*60*24*60;
-		$mark=infra_toutf(strip_tags($mark));
+		if (isset(self::$instances[$mark])) {
+			return self::$instances[$mark];
+		}
+		self::$instances[$mark]=new Self($mark);
+		return self::$instances[$mark];
+	}
+	private function __construct($mark)
+	{
+		$this->warrantytime=60*60*24*60;//60 дней
 		$r=explode($this->sym, $mark);
 		$this->mark=array_shift($r);
-
 		if ($this->mark!='') {
 			$data=infra_mem_get($this->prefix.$this->mark);
 			if (!$data || !is_array($data['data'])) {
@@ -83,18 +81,26 @@ class Filter
 				$this->old=$data['data'];
 			}
 		}
+
+		$this->data=$this->old;
+
 		$add=implode($this->sym, $r);
-
-
-		$regex = '/(?<!")([a-zA-Z0-9_]+)(?!")(?=:)/i';
-		$add=preg_replace($regex, '"$1"', $add);
-		$add=infra_json_decode('{'.$add.'}', true);
-		if (is_array($add)&&$add) {
-			$this->add=$add;
-			$this->isadd=true;
-			$this->data=array_merge($this->old, $add);
-		} else {
-			$this->data=$this->old;
+		$r=explode(':', $add);
+		$l=sizeof($r);
+		if ($l%2) {
+			$l++;
+			$r[]='';
+		}
+		for ($i = 0; $i < $l; $i = $i + 2) {
+			if (!$r[$i]) {
+				continue;
+			}
+			if ($r[$i+1]==='false') {
+				$r[$i+1]=false;
+			} else if ($r[$i+1]==='true') {
+				$r[$i+1]=true;
+			}
+			infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
 		}
 	}
 	private function makeMark($data)

@@ -4,12 +4,17 @@ namespace itlife\catalog;
 
 use itlife\files\Xlsx;
 
+infra_admin_modified();
+
 $ans=array();
 
-
+Catalog::getFilter($ans);
 //На главной странице каталога показываются и может быть эти даные используются для показа групп на главной траницы
 
-$data=Catalog::init();
+$data=infra_loadJSON('*catalog/search.php?m='.$ans['m']);
+
+$ans['childs']=$data['childs'];
+/*$data=Catalog::init();
 $data=$data['childs'];
 
 foreach ($data as $k => &$gr) {
@@ -32,8 +37,10 @@ foreach ($data as $k => &$gr) {
 	}
 }
 $ans['childs']=array_values($data);
-$ans['menu']=infra_loadJSON('*catalog/rubrics.json');
+/*
+$ans['menu']=infra_loadJSON('*catalog/menu.json');
 $ans['breadcrumbs']=array();
 $conf=infra_config();
 $ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
+*/
 return infra_ret($ans);

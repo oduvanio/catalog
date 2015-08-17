@@ -13,9 +13,9 @@ $val=infra_forFS(infra_toutf(strip_tags($_GET['val'])));
 
 $sval=infra_strtolower($val);
 
+$ans=array();
 
-$md=Catalog::getFilter($ans);
-
+$fd=Catalog::getFilter($ans);
 
 
 if (isset($_GET['page'])) {
@@ -64,8 +64,9 @@ $ans['list']=array(); //Массив позиций
 
 
 $del = array('sort', 'page', 'direct', 'count');
-$args=array($sval, array_diff_key($md, array_flip($del)));
-$res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
+
+$args=array($sval, array_diff_key($fd, array_flip($del)));
+$res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 	$ans=array();
 	$args=array($sval);
 	$res=Catalog::cache('search.php just list', function ($sval) use ($val) {
@@ -112,7 +113,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 			});
 			$conf=infra_config();
 			$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
-			$menu=infra_loadJSON('*catalog/rubrics.json');
+			$menu=infra_loadJSON('*catalog/menu.json');
 			$ans['breadcrumbs'][]=array('href'=>'change','title'=>$menu['change']['title']);
 			return $ans;
 		}
@@ -134,6 +135,9 @@ $res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 			array_map(function ($p) use (&$ans) {
 				$ans['breadcrumbs'][]=array('href'=>$p,'title'=>$p);
 			}, $group['path']);
+			if (sizeof($ans['breadcrumbs'])==1) {
+				unset($ans['breadcrumbs']);
+			}
 
 			$ans['name']=$group['name'];//имя группы длинное
 			$ans['descr']=@$group['descr']['Описание группы'];
@@ -173,7 +177,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 			$ans['title']=$name;
 			$conf=infra_config();
 			$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
-			$menu=infra_loadJSON('*catalog/rubrics.json');
+			$menu=infra_loadJSON('*catalog/menu.json');
 			$ans['breadcrumbs'][]=array('href'=>'producers','title'=>$menu['producers']['title']);
 			$ans['breadcrumbs'][]=array('href'=>$name,'title'=>$name);
 
@@ -208,7 +212,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 		});
 		$conf=infra_config();
 		$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title']);
-		$menu=infra_loadJSON('*catalog/rubrics.json');
+		$menu=infra_loadJSON('*catalog/menu.json');
 
 		$ans['breadcrumbs'][]=array('href'=>'find','title'=>$menu['find']['title']);
 		$ans['breadcrumbs'][]=array('href'=>$val,'title'=>$val);
@@ -220,102 +224,81 @@ $res=Catalog::cache('search.php filter list', function ($sval, $md) use ($val) {
 	}, $args, isset($_GET['re']));
 	$ans=array_merge($ans, $res);
 	//ЭТАП filters list
-	
-	
-	//Producers
-	$producers=array();
-	array_map(function ($pos) use (&$producers) {
-		$producers[$pos['producer']]++;
-	}, $ans['list']);
-	$ans['producers']=$producers;
-
-	//Filter producer
-	if (!empty($md['producer'])) {
-		$ans['list']=array_filter($ans['list'], function ($pos) use ($md) {
-			if ($md['producer']==$pos['producer']) {
-				return true;
-			}
-			return false;
-		});
-	}
-
-	//Здесь формируются filteroptions
-
+	Extend::filtering($ans, $fd);
 	//Groups
-	if (sizeof($ans['list'])) {//Нужно найти общую группу в path и показать её подгруппы
-		$subgroups=Catalog::cache('search.php subgroups', function () {
-			//Микров вставка всё ради того чтобы не пользоваться $data на этом уровне
-			//данный кэш один для любой страницы каталога
-			$subgroups=array();
-			$data=Catalog::init();
-			Xlsx::runGroups($data, function ($group) use (&$subgroups) {
-				if (empty($group['childs'])) {
-					return;
-				}
-				$subgroup=array();
-				array_map(function ($g) use (&$subgroup) {
-					$subgroup[]=array('title'=>$g['title'],'name'=>$g['name']);
-				}, $group['childs']);
-				$subgroups[$group['title']]=$subgroup;
-			});
-			return $subgroups;
+	$subgroups=Catalog::cache('search.php subgroups', function () {
+		//Микров вставка всё ради того чтобы не пользоваться $data на этом уровне
+		//данный кэш один для любой страницы каталога
+		$subgroups=array();
+		$data=Catalog::init();
+		Xlsx::runGroups($data, function ($group) use (&$subgroups) {
+			if (empty($group['childs'])) {
+				return;
+			}
+			$subgroup=array();
+			array_map(function ($g) use (&$subgroup) {
+				$subgroup[]=array('title'=>$g['title'],'name'=>$g['name']);
+			}, $group['childs']);
+			$subgroups[$group['title']]=$subgroup;
 		});
-		$groups=array();
+		return $subgroups;
+	});
+	$groups=array();
+	foreach ($ans['list'] as &$pos) {
+		$path=$pos['path'];
 		foreach ($ans['list'] as &$pos) {
-			$path=$pos['path'];
-			foreach ($ans['list'] as &$pos) {
-				foreach ($pos['path'] as $v) {
-					if (!isset($groups[$v])) {
-						$groups[$v]=array('pos'=>$pos, 'count'=>0);
-					};
-					$groups[$v]['count']++;
-				}
-				$rpath=array();
-				foreach ($path as $k => $p) {
-					if ($pos['path'][$k]==$p) {
-						$rpath[$k]=$p;
-					} else {
-						break;
-					}
-				}
-				$path=$rpath;
+			foreach ($pos['path'] as $v) {
+				if (!isset($groups[$v])) {
+					$groups[$v]=array('pos'=>$pos, 'count'=>0);
+				};
+				$groups[$v]['count']++;
 			}
-			break;
+			$rpath=array();
+			foreach ($path as $k => $p) {
+				if ($pos['path'][$k]==$p) {
+					$rpath[$k]=$p;
+				} else {
+					break;
+				}
+			}
+			$path=$rpath;
 		}
-		
-		if (!sizeof($path)) {
-			$conf=infra_config();
-			$groupchilds=$subgroups[$conf['catalog']['title']];
+		break;
+	}
+	if (!sizeof($path)) {
+		$conf=infra_config();
+		$groupchilds=$subgroups[$conf['catalog']['title']];
+	} else {
+		$g=$path[sizeof($path)-1];
+		if (isset($subgroups[$g])) {
+			$groupchilds=$subgroups[$g];
 		} else {
-			$g=$path[sizeof($path)-1];
-			if (isset($subgroups[$g])) {
-				$groupchilds=$subgroups[$g];
-			} else {
-				$groupchilds=false;
-			}
+			$groupchilds=false;
 		}
-		if ($groupchilds) {
-			$ans['childs']=array();
-			foreach ($groupchilds as $g) {
-				//0 упоминаний
-				if (!$groups[$g['title']]) {
-					continue;
-				}
-				$pos=$groups[$g['title']]['pos'];
-				$pos=array('article'=>$pos['article'],'producer'=>$pos['producer']);
-				$ans['childs'][]=array_merge($g, array('pos'=>$pos,'count'=>$groups[$g['title']]['count']));
+	}
+	if ($groupchilds) {
+		$ans['childs']=array();
+		foreach ($groupchilds as $g) {
+			//0 упоминаний
+			if (!$groups[$g['title']]) {
+				continue;
 			}
+			$pos=$groups[$g['title']]['pos'];
+			$pos=array('article'=>$pos['article'],'producer'=>$pos['producer']);
+			$ans['childs'][]=array_merge($g, array('pos'=>$pos,'count'=>$groups[$g['title']]['count']));
 		}
 	}
 	$ans['count']=sizeof($ans['list']);
 	return $ans;
 }, $args, isset($_GET['re']));
+
 $ans=array_merge($ans, $res);
+
+
 //ЭТАП numbers list
 
-
-if ($md['sort']!='def') {
-	if ($md['sort']=='name') {
+if ($fd['sort']!='def') {
+	if ($fd['sort']=='name') {
 		usort($ans['list'], function ($a, $b) {
 			$a=$a['Наименование'];
 			$b=$b['Наименование'];
@@ -326,20 +309,19 @@ if ($md['sort']!='def') {
 		});
 	}
 }
-if (!$md['direct']) {
+if (!$fd['direct']) {
 	$ans['list']=array_reverse($ans['list']);
 }
 
 
-$pages=(int)ceil(sizeof($ans['list'])/$md['count']);
+$pages=ceil(sizeof($ans['list'])/$fd['count']);
 if ($pages<$ans['page']) {
 	$ans['page']=$pages;
 }
 
 $ans['numbers']=Catalog::numbers($ans['page'], $pages, 11);
 
-$ans['list']=array_slice($ans['list'], ($ans['page']-1)*$md['count'], $md['count']);
-
+$ans['list']=array_slice($ans['list'], ($ans['page']-1)*$fd['count'], $fd['count']);
 
 
 $conf=infra_config();

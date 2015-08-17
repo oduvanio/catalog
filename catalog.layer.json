@@ -1,6 +1,6 @@
 {
-	"tpl":"*catalog/rubrics.tpl",
-	"jsontpl":"*catalog/rubrics.php",
+	"tpl":"*catalog/search.tpl",
+	"jsontpl":"*catalog/search.php?val=&m={infra.Crumb.get.m}&page={infra.Crumb.get.p}",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
 	"unick":"catalog",
 	"configtpl":{
@@ -9,8 +9,6 @@
 	"child":[{
 		"tpl":"*catalog/search.tpl",
 		"jsontpl":"*catalog/search.php?val={crumb.name}&m={infra.Crumb.get.m}&page={infra.Crumb.get.p}",
-		"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
-		"conf_prod":true,
 		"unick":"search",
 		"configtpl":{
 			"root":"{crumb.parent}"
@@ -18,7 +16,6 @@
 	},{
 		"child":{
 			"tpl":"*catalog/position.tpl",
-			"autoedittpl":{ "fast":"*Каталог/{crumb.parent.name}/{crumb.name}/" },
 			"jsontpl":"*catalog/position.php?val={crumb.parent.name}&art={crumb.name}",
 			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"}
 		}
@@ -34,13 +31,19 @@
 		},
 		"producers":{
 			"tpl":"*catalog/producers.tpl",
-			"json":"*catalog/producers.php",
-			"autoedit":{ "fast":"*Тексты/Производители"}
+			"jsontpl":"*catalog/producers.php?m={infra.Crumb.get.m}",
+			"autoedit":{ "fast":"*Тексты/Производители"},
+			"configtpl":{
+				"root":"{crumb.parent}"
+			}
 		},
 		"stat":{
 			"tpl":"*catalog/stat.tpl",
 			"json":"*catalog/stat.php",
 			"autoedit":{ "fast":"*Тексты/Статистика поиска по каталогу"},
+			"configtpl":{
+				"root":"{crumb.parent}"
+			},
 			"seotpl":{
 				"link":"{crumb}",
 				"json":"{json}"

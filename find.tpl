@@ -21,4 +21,5 @@
 			</div>
 	</form>
 	{data.childs:cat.groups}
+	{data.menu:cat.menu}
 {cat::}*catalog/cat.tpl

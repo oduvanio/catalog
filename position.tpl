@@ -75,7 +75,7 @@
 			Задать вопрос о {Производитель} {Артикул} можно с помощью <span class="a showContacts">формы для сообщений</span> или c помощью других <a href="?contacts">контактов</a>.
 		</p>
 		<p>
-			Перейти к группе <a onclick="infrajs.scroll='.pagination'" href="?{crumb.parent.parent}/{group_title}{:cat.mclsave}">{group_title}</a><br>
+			Перейти к группе <a onclick="infrajs.scroll='.pagination'" href="?{crumb.parent.parent}/{group_title}{:cat.filter.client.set}">{group_title}</a><br>
 			
 		</p>
 	</div>
@@ -112,7 +112,7 @@
 		</a>
 {producer:}
 	<div style="float:right; background-color:white; padding:10px 10px 10px 10px; margin-left:5px; margin-bottom:5px;">
-		<a onclick="infrajs.scroll='.pagination'" title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}/{producer}{cat.mclsave}">
+		<a onclick="infrajs.scroll='.pagination'" title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}/{producer}{:cat.filter.client.add}producer:{producer}">
 			<img style="margin-left:5px" src="?*imager/imager.php?w=160&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty.png" />
 		</a>
 	</div>
