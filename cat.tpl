@@ -13,7 +13,7 @@
 			vertical-align:middle;
 			font-size:20px;
 		}
-		
+
 	</style>
 	<div class="catgrouplist row">
 		{::groups_group}
@@ -30,7 +30,7 @@
 	</script>
 	{groups_group:}
 		<div class="col-sm-6">
-			<a onclick="infrajs.scroll='#pathCatalog'" href="?{config.root}/{title}{:filter.set}">
+			<a onclick="infrajs.scroll='#pathCatalog'" href="?{config.root}/{title}{:mark.set}">
 				<table>
 					<tr>
 						<td class="img">
@@ -51,15 +51,16 @@
 	{brcrumb:}
 		{~last()?:crumblast?:crumb}
 	{crumb:}
-		<li><a href="?catalog{href?:/}{href}{:filter.set}">{title}</a></li>
+		<li><a href="?catalog{href?:/}{href}{add?:add?(nomark|:mark.set)}">{title}</a></li>
 	{crumblast:}
 		<li class="active">{title}</li>
-{filter::}*catalog/filter.tpl
+	{add:}{:mark.add}{add}
+{mark::}*catalog/mark.tpl
 {/:}/
 {menu:}
 	<div style="margin-top:10px">
 		<ul class="nav nav-pills">
-			{::items}	
+			{::items}
 		</ul>
 	</div>
 	{items:}

@@ -7,16 +7,13 @@ namespace itlife\catalog;
 
 use itlife\files\Xlsx;
 
-infra_admin_modified();
-
 $val=infra_forFS(infra_toutf(strip_tags($_GET['val'])));
 
 $sval=infra_strtolower($val);
 
 $ans=array();
 
-$fd=Catalog::getFilter($ans);
-
+$fd=Catalog::initMark($ans);
 
 if (isset($_GET['page'])) {
 	$ans['page']=(int)$_GET['page'];
@@ -51,13 +48,13 @@ $ans['list']=array(); //Массив позиций
 /*
 	уже есть val, mark, filterdata
 	--cache sval filterdata с исключением
-		--cache sval 
+		--cache sval
 			1 poss - найти все позиции согласно требованию val
 			Определить is, descr, text, name, breadcrumbs
 		--
-		2 filteroptions - проанализирвать poss и сформировать 
+		2 filteroptions - проанализирвать poss и сформировать
 		3 groups, producers - собрать, отдельно так как меняют val и вообще это самая главная навигация
-		4 Применить filterdata к poss и получить list
+		4 Применить markdata к poss и получить list
 	--
 	5 Посчитать pages отсортировать, урезать
 */
@@ -71,7 +68,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 	$args=array($sval);
 	$res=Catalog::cache('search.php just list', function ($sval) use ($val) {
 		$ans=array();
-		
+
 
 		$data=Catalog::init();
 
@@ -128,6 +125,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 			});
 		}
 		if ($group) {
+
 			//is!, descr!, text!, name!, breadcrumbs!, title
 			$ans['is']='group';
 			$conf=infra_config();
@@ -136,7 +134,8 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 				$ans['breadcrumbs'][]=array('href'=>$p,'title'=>$p);
 			}, $group['path']);
 			if (sizeof($ans['breadcrumbs'])==1) {
-				unset($ans['breadcrumbs']);
+				array_unshift($ans['breadcrumbs'],array('href'=>'/',"title"=>"Главная","nomark"=>true));
+				//unset($ans['breadcrumbs']);
 			}
 
 			$ans['name']=$group['name'];//имя группы длинное
@@ -171,7 +170,7 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 				$folder=$p[sizeof($p)-2];
 				$name=$folder;
 			}
-			
+
 			$ans['descr']='';
 			$ans['name']=$name;
 			$ans['title']=$name;
@@ -216,13 +215,14 @@ $res=Catalog::cache('search.php filter list', function ($sval, $fd) use ($val) {
 
 		$ans['breadcrumbs'][]=array('href'=>'find','title'=>$menu['find']['title']);
 		$ans['breadcrumbs'][]=array('href'=>$val,'title'=>$val);
-		
+
 		$ans['descr']='Найдено позиций: '.sizeof($poss);
 		$ans['list']=$poss;
 		$ans['title']=infra_forFS($val);
 		return $ans;
 	}, $args, isset($_GET['re']));
 	$ans=array_merge($ans, $res);
+
 	//ЭТАП filters list
 	Extend::filtering($ans, $fd);
 	//Groups

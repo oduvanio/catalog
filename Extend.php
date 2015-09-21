@@ -2,67 +2,62 @@
 namespace itlife\catalog;
 
 use itlife\files\Xlsx;
-
 class Extend
 {
-	public static $fd = array(
+	public static $md = array(
 		"count"=>5,
 		"direct"=>true,
 		"sort"=>false,
-		"producer"=>false,
-		"use"=>false
+		"producer"=>false
 	);
 	public static function init()
 	{
 		$conf=infra_config();
-		$data=&Xlsx::init($conf['catalog']['dir'], array('more' => true, 'Имя файла' => $conf['catalog']['Имя файла']));
+		$data=&Xlsx::init($conf['catalog']['dir'], array(
+			'more' => true,
+			'Имя файла' => "Производитель",
+			'Известные колонки'=>array("Наименование","Артикул","Производитель","Цена","Описание"))
+		);
 		return $data;
 	}
-	public static function filterData(&$fd)
+	public static function filterData(&$md)
 	{
-		if (isset($fd['sort'])) {
-			$fd['sort']=(string)$fd['sort'];// price, name, def, group, producer
-			if (!in_array($fd['sort'], array('def', 'name', 'group', 'producer'))) {
-				unset($fd['sort']);
+		if (isset($md['sort'])) {
+			$md['sort']=(string)$md['sort'];// price, name, def, group, producer
+			if (!in_array($md['sort'], array('def', 'name', 'group', 'producer'))) {
+				unset($md['sort']);
 			}
 		}
-		if (isset($fd['producer'])) {
-			$fd['producer']=(string)$fd['producer'];
-			if ($fd['producer']=='') {
-				unset($fd['producer']);
+		if (isset($md['producer'])) {
+			$md['producer']=(string)$md['producer'];
+			if ($md['producer']=='') {
+				unset($md['producer']);
 			}
 		}
-		if (isset($fd['direct'])) {
-			if (!is_bool($fd['direct'])) {
-				unset($fd['direct']);
+		if (isset($md['direct'])) {
+			if (!is_bool($md['direct'])) {
+				unset($md['direct']);
 			}
 		}
-		
-		if (isset($fd['count'])) {
-			$fd['count']=(int)$fd['count'];
 
-			if ($fd['count']<1) {
-				unset($fd['count']);
-			}
-		}
-		if (isset($fd['use'])) {
-			$fd['use']=(string)$fd['use'];
+		if (isset($md['count'])) {
+			$md['count']=(int)$md['count'];
 
-			if ($fd['use']=='') {
-				unset($fd['use']);
+			if ($md['count']<1) {
+				unset($md['count']);
 			}
 		}
 	}
-	public static function filtering(&$ans, $fd)
+	public static function filtering(&$ans, $md)
 	{
 		if (!sizeof($ans['list'])) {
 			return;
 		}
 		$ans['filters']=array();
 		//Filter producer
-		if (!empty($fd['producer'])) {
-			$ans['list']=array_filter($ans['list'], function ($pos) use ($fd) {
-				if ($fd['producer']==$pos['producer']) {
+		if (!empty($md['producer'])) {
+			$ans['list']=array_filter($ans['list'], function ($pos) use ($md) {
+				if ($md['producer']==$pos['producer']) {
 					return true;
 				}
 				return false;
@@ -70,33 +65,7 @@ class Extend
 			$ans['filters'][]=array(
 				'title'=>'Производитель',
 				'name'=>'producer',
-				'value'=>$fd['producer']
-			);
-		}
-		if (!empty($fd['use'])) {
-			$ans['list']=array_filter($ans['list'], function ($pos) use ($fd) {
-
-				$group=Catalog::cache('group', function ($title) {
-					$data=Catalog::init();
-					return Xlsx::runGroups($data, function ($group) use ($title) {
-						if ($group['title']==$title) {
-							unset($group['data']);
-							unset($group['childs']);
-							return $group;
-						}
-					});
-				}, array($pos['group_title']));
-
-				if (stripos($group['tparam'], $fd['use'])===false) {
-					return false;
-				} else {
-					return true;
-				}
-			});
-			$ans['filters'][]=array(
-				'title'=>'Назначение',
-				'name'=>'use',
-				'value'=>$fd['use']
+				'value'=>$md['producer']
 			);
 		}
 	}

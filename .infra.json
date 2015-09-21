@@ -1,8 +1,8 @@
 {
 	"catalog":{
 		"pub":["dir", "title"],
-		"dir":"*Каталог/",
-		"Имя файла":"Группа",
+		"dir":"~catalog/",
+		"cache":["~catalog/"],
 		"title":"Каталог"
 	}
 }

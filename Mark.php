@@ -2,26 +2,26 @@
 namespace itlife\catalog;
 
 /**
- * Класс обеспечивает негарантированнео хранение параметров в экстрокороткой строке из 2 символов
+ * Класс обеспечивает негарантированное хранение параметров в экстрокороткой строке из 2 символов
  * Это работает за счёт сохранения объекта данных в 2х символах, со временем данные этих 2х символов буду заменены, но нам важно только короткая память
  * возможность обменяться ссылками, кнопки вперёд назад.
  * так называемая приставка окружения env содержит в себе зашифрованную часть (2 символа) и изменение к зашифрованной части
  * например ?Каталог:aa содержит защифрованную часть aa которая на сервере развернётся в объект данных {page:1,prod:"Арсенал"}
- * например aa:{"page":2} - зашифрованная часть aa объединится с изменениями и получится {page:2,prod:"Арсенал"}
+ * например aa:page:2 - зашифрованная часть aa объединится с изменениями и получится {page:2,prod:"Арсенал"}
  * объект данных {page:2,prod:"Арсенал"} зашифруется в новую комбинацию xx и дальнейшие ссылки уже относительно этой пары символов
- * $filter=new Filter($str); //$str содержит приставку
- * $val=$filter->getVal();
- * $fd=$filter->getData();
+ * $mark=new Mark($str); //$str содержит приставку
+ * $val=$mark->getVal();
+ * $fd=$mark->getData();
  * Проверить $fd
- * $filter->setData($fd);
- * $mark=$filter->getMark(); //приставка для следующего $str
+ * $mark->setData($fd);
+ * $mark=$mark->getMark(); //приставка для следующего $str
  */
-class Filter
+class Mark
 {
 	private $sym = ':';
 	//Если метка есть а даных нет считаем что метка устарела.
 	//Недопускаем ситуации что метка появилась до появления привязанных к ней данных
-	
+
 	public $old = array();
 	public $add = array();
 	public $isadd = false;
@@ -45,9 +45,6 @@ class Filter
 	}
 	public function setData($newdata)
 	{
-		if (!is_array($newdata)) {
-			$newdata=array();
-		}
 		$this->data=$newdata;
 		$this->mark=$this->makeMark($this->data);
 		return $this->mark;
@@ -84,23 +81,31 @@ class Filter
 
 		$this->data=$this->old;
 
+
 		$add=implode($this->sym, $r);
-		$r=explode(':', $add);
-		$l=sizeof($r);
-		if ($l%2) {
-			$l++;
-			$r[]='';
-		}
-		for ($i = 0; $i < $l; $i = $i + 2) {
-			if (!$r[$i]) {
-				continue;
+		if($add!==''){
+
+			$r=explode(':', $add);
+			$l=sizeof($r);
+
+			if ($l%2) {
+				$l++;
+				$r[]='';
 			}
-			if ($r[$i+1]==='false') {
-				$r[$i+1]=false;
-			} else if ($r[$i+1]==='true') {
-				$r[$i+1]=true;
+
+			for ($i = 0; $i < $l; $i = $i + 2) {
+				if (!$r[$i]) {
+					continue;
+				}
+				/*if ($r[$i+1]==='false') {
+					$r[$i+1]=false;
+				} else if ($r[$i+1]==='true') {
+					$r[$i+1]=true;
+				} else if ($r[$i+1]==='null') {
+					$r[$i+1]=null;
+				}*/
+				infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
 			}
-			infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
 		}
 	}
 	private function makeMark($data)
@@ -135,12 +140,12 @@ class Filter
 			}
 
 			if ($len>=$this->len+$note) {
-				$that->notice='Filter adding to hash '.($len-$this->len).' symbol(s) for save time warranty '.print_r($data, true);
+				$that->notice='Mark adding to hash '.($len-$this->len).' symbol(s) for save time warranty '.print_r($data, true);
 				error_log($that->notice);
 			}
 			if ($isoutdate) {
 				//Все метки актуальны... перезаписываем первую
-				$that->error='Filter rewrite actual hashmark';
+				$that->error='Mark rewrite actual hashmark';
 				error_log($that->error);
 				$mark=substr($key, 0, $this->len);
 			}

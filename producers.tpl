@@ -9,9 +9,9 @@
 	{data.text}
 	{data.menu:cat.menu}
 {catprod1:}
-	<a href='?{crumb.parent}/{~key}{:cat.filter.add}producer:{~key}' title="{~key} {.}">{~key}</a>{~last()?:point?:comma} 
-{comma:}, 
+	<a href='?{crumb.parent}/{~key}{:cat.mark.add}producer:{~key}' title="{~key} {.}">{~key}</a>{~last()?:point?:comma}
+{comma:},
 {point:}.
 {catprod:}
-	<a href='?{crumb.parent}/{~key}{:cat.filter.add}producer:{~key}' title="{~key} {.}"><img alt="{~key}" style="margin-bottom:10px" src="?*imager/imager.php?w=100&src={infra.conf.catalog.dir}{~key}/&or=*imager/empty.png"></a>
+	<a href='?{crumb.parent}/{~key}{:cat.mark.add}producer:{~key}' title="{~key} {.}"><img alt="{~key}" style="margin-bottom:10px" src="?*imager/imager.php?w=100&src={infra.conf.catalog.dir}{~key}/&or=*imager/empty.png"></a>
 {cat::}*catalog/cat.tpl

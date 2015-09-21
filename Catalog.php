@@ -2,10 +2,9 @@
 namespace itlife\catalog;
 
 use itlife\files\Xlsx;
-
+infra_require('*catalog/Extend.php');
 class Catalog
 {
-	public static $filter=null;
 	public static function init()
 	{
 		return self::cache('cat_init', function () {
@@ -14,12 +13,9 @@ class Catalog
 	}
 	public static function cache($name, $call, $args = array(), $re = null)
 	{
-
-		if (is_null($re)) {
-			$re=isset($_GET['re']);
-		}
+		if (is_null($re)) $re=isset($_GET['re']);
 		$conf=infra_config();
-		return infra_cache(array($conf['catalog']['dir']), 'cat-'.$name, $call, $args, $re);
+		return infra_cache($conf['catalog']['cache'], 'cat-'.$name, $call, $args, $re);
 	}
 	public static function numbers($page, $pages, $plen = 11)
 	{
@@ -28,8 +24,8 @@ class Catalog
 		$pages=10
 		$plen=6
 
-		(1)2345-10 
-		1(2)345-10 
+		(1)2345-10
+		1(2)345-10
 		12(3)45-10
 		123(4)5-10
 		1-4(5)6-10
@@ -108,25 +104,20 @@ class Catalog
 		array_push($ar, $next);
 		return $ar;
 	}
-	public static function getFilter(&$ans = array())
+	public static function initMark(&$ans = array())
 	{
 		$mark=infra_toutf(infra_seq_get($_GET, infra_seq_right('m')));
-		$filter=Filter::getInstance($mark);
-		$fd=$filter->getData();
+		$mark=Mark::getInstance($mark);
+		$md=$mark->getData();
 
-		$admit=array_keys(Extend::$fd);
-		$fd = array_intersect_key($fd, array_flip($admit));
+		$admit=array_keys(Extend::$md);
+		$md = array_intersect_key($md, array_flip($admit));
 
-		Extend::filterData($fd);
-		foreach ($fd as $k => $v) {
-			if (is_null($v)) {
-				unset($fd[$k]); //Удаление
-			}
-		}
+		Extend::filterData($md);
 
-		$ans['m']=$filter->setData($fd);
-		$fd=array_merge(Extend::$fd, $fd);
-		$ans['fd']=$fd;
-		return $fd;
+		$ans['m']=$mark->setData($md);
+		$md=array_merge(Extend::$md, $md);
+		$ans['fd']=$md;
+		return $md;
 	}
 }
