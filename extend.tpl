@@ -23,7 +23,7 @@
             padding:4px 8px;
         }
         .cat_item .title:hover {
-            background-color:#009EC3;
+            background-color:gray;
             color:white;
         }
     </style>
@@ -38,15 +38,15 @@
             <a class="title padding" href="?{infrajs.unicks.catalog.crumb}/{producer}/{article}/">{Наименование}</a>
             <div class="padding">
                 <b><a href="?{infrajs.unicks.catalog.crumb}/{producer}/{article}/">{Производитель} {Артикул}</a></b>
-                <div class="pull-right"><a href="?{infrajs.unicks.catalog.crumb}/{group_title}">{group_title}</a></div>
+                <div class="pull-right" style="font-size:90%"><a href="?{infrajs.unicks.catalog.crumb}/{group_title}">{group_title}</a></div>
             </div>
             {more?:havemore?:nomore}
         </div>
     </div>
     {havemore:}
         <div class="padding" style="font-family:Tahoma; font-size:85%">
-            <a title="Посмотреть продукцию {Производитель}" href="?{infrajs.unicks.catalog.crumb}/{producer}" class="right">
-                <img src="?*imager/imager.php?w=100&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty" />
+            <a title="Посмотреть продукцию {Производитель}" href="?{infrajs.unicks.catalog.crumb}/{producer}">
+                <img class="right" style="clear:right" src="?*imager/imager.php?w=100&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty" />
             </a>
             {more::cat_more}
         </div>
