@@ -1,4 +1,5 @@
 {root:}
+	{data.breadcrumbs:cat.breadcrumbs}
 	<h1>Производители</h1>
 	<div style="padding:10px; font-size:12px; margin-bottom:20px;">
 		{data.list::catprod1}
@@ -15,3 +16,5 @@
 {catprod:}
 	<a href='?{crumb.parent}/{~key}{:cat.mark.add}producer:{~key}' title="{~key} {.}"><img alt="{~key}" style="margin-bottom:10px" src="?*imager/imager.php?w=100&src={infra.conf.catalog.dir}{~key}/&or=*imager/empty.png"></a>
 {cat::}*catalog/cat.tpl
+{cat.mark.set:}{:cat.mark.client.set}
+{cat.mark.add:}{:cat.mark.client.add}

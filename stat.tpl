@@ -1,3 +1,4 @@
+{data.breadcrumbs:cat.breadcrumbs}
 <h1 title="c {~date(:j F Y,data.stat.time)}">Последние запросы набранные в строке поиска по каталогу</h1>
 <table class="table table-striped">
 	<tr><td></td><td>Фразы</td></tr>
@@ -12,6 +13,8 @@
 		</td>
 		<td>{list::statitem}</td>
 	</tr>
-{statitem:}<a href="?{crumb.parent}/{val}" title="от {~date(:d.m.Y,time)}">{val}</a><sup>{count}</sup>{~last()??:statsep}
+{statitem:}<a href="?{crumb.parent}{:cat.mark.client.add}search:{val}" title="от {~date(:d.m.Y,time)}">{val}</a><sup>{count}</sup>{~last()??:statsep}
 {statsep:} |  
 {cat::}*catalog/cat.tpl
+{cat.mark.set:}{:cat.mark.client.set}
+{cat.mark.add:}{:cat.mark.client.add}

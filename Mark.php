@@ -61,6 +61,7 @@ class Mark
 	private function __construct($mark)
 	{
 		$this->warrantytime=60*60*24*60;//60 дней
+		$mark=preg_replace("/:(.+)::\./U", ":$1::$1.", $mark);
 		$r=explode($this->sym, $mark);
 		$this->mark=array_shift($r);
 		if ($this->mark!='') {
@@ -78,14 +79,13 @@ class Mark
 				$this->old=$data['data'];
 			}
 		}
-
+		
 		$this->data=$this->old;
-
-
+		
 		$add=implode($this->sym, $r);
 		if($add!==''){
 
-			$r=explode(':', $add);
+			$r=explode($this->sym, $add);
 			$l=sizeof($r);
 
 			if ($l%2) {
@@ -94,26 +94,26 @@ class Mark
 			}
 
 			for ($i = 0; $i < $l; $i = $i + 2) {
-				if (!$r[$i]) {
-					continue;
-				}
-				/*if ($r[$i+1]==='false') {
-					$r[$i+1]=false;
-				} else if ($r[$i+1]==='true') {
-					$r[$i+1]=true;
-				} else if ($r[$i+1]==='null') {
-					$r[$i+1]=null;
-				}*/
+				if (!$r[$i]) continue;
 				infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
 			}
+		}
+		
+	}
+	private function rksort(&$data){
+		ksort($data);
+		foreach($data as &$v){
+			if(!is_array($v))continue;
+			if(infra_isAssoc($v)===true) self::rksort($v);
+			//else sort($v);
 		}
 	}
 	private function makeMark($data)
 	{
-		ksort($data);
-		if (!$data) {
-			return '';
-		}
+		
+		if (!$data) return '';
+		self::rksort($data);
+		
 		$key=md5(serialize($data));
 		$that=$this;
 

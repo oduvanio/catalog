@@ -5,7 +5,13 @@
 		var val=$(this).find('[type=text]').val();
 		val=infra.forFS(val);
 		var layer=infrajs.find('unick','catalog');
-		infra.Crumb.go(layer.crumb.name+'/'+val);
+		
+		if (infra.Crumb.get.m) {
+			var params='&m='+infra.Crumb.get.m;
+		} else {
+			var params='';
+		}
+		infra.Crumb.go(layer.crumb.name+'/'+val+params);
 		setTimeout(function(){
 			$.getJSON(infra.theme('*catalog/stat.php?submit=1&val='+val));
 		},1);
@@ -23,3 +29,5 @@
 	{data.childs:cat.groups}
 	{data.menu:cat.menu}
 {cat::}*catalog/cat.tpl
+{cat.mark.set:}{:cat.mark.client.set}
+{cat.mark.add:}{:cat.mark.client.add}

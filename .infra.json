@@ -3,6 +3,12 @@
 		"pub":["dir", "title"],
 		"dir":"~catalog/",
 		"cache":["~catalog/"],
-		"title":"Каталог"
+		"title":"Каталог",
+		"md":{
+	        "use":false
+	    },
+		"filename":"Производитель",
+		"columns":[],
+		"filters":{}
 	}
 }

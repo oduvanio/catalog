@@ -2,10 +2,22 @@
 namespace itlife\catalog;
 
 $ans=array();
+if(isset($_GET['seo'])){
+	if(empty($_GET['link'])){
+	    return infra_err($ans,'Wrong parameters');
+	}
+	$link=$_GET['link'];
+	$link=$link.'/stat';
+	$ans['external']='*catalog/seo.json';
+	$ans['canonical']=infra_view_getPath().'?'.$link;
+	return infra_ans($ans);
+}
 $ans['menu']=infra_loadJSON('*catalog/menu.json');
 $submit=!empty($_GET['submit']); // сбор статистики
 
-
+$conf=infra_config();
+$ans['breadcrumbs'][]=array('href'=>'','title'=>$conf['catalog']['title'],'add'=>'group');
+$ans['breadcrumbs'][]=array('href'=>'stat','title'=>'Статистика поиска');
 
 $dirs=infra_dirs();
 $dir=$dirs['data'];

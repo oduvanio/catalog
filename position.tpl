@@ -74,7 +74,7 @@
 		src="?*imager/imager.php?mark=1&h=100&src={:imgsrc}" /></a>
 {producer:}
 	<div style="float:right; background-color:white; padding:10px 10px 10px 10px; margin-left:5px; margin-bottom:5px;">
-		<a onclick="infrajs.scroll='.pagination'" title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}/{producer}{:cat.mark.client.add}producer:{producer}">
+		<a onclick="infrajs.scroll='.pagination'" title="Посмотреть продукцию {producer}" href="?{crumb.parent.parent}{:cat.mark.add}producer::.{producer}:1">
 			<img style="margin-left:5px" src="?*imager/imager.php?w=160&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty.png" />
 		</a>
 	</div>
@@ -83,3 +83,7 @@
 	</div>
 	-->
 {cat::}*catalog/cat.tpl
+{cat.mark.set:}{:cat.mark.client.set}
+{cat.mark.add:}{:cat.mark.client.add}
+{extend.cat.mark.set:}{:cat.mark.set}
+{extend.cat.mark.add:}{:cat.mark.add}
