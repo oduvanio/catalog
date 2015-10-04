@@ -35,7 +35,7 @@
 		},
 		"producers":{
 			"tpl":"*catalog/producers.tpl",
-			"jsontpl":"*catalog/producers.php?m={infra.Crumb.get.m}",
+			"jsontpl":"*catalog/producers.php?lim=0,200&m={infra.Crumb.get.m}",
 			"seojsontpl":"*catalog/producers.php?seo={infrajs.unicks.catalog.crumb}",
 			"autoedit":{ "fast":"*Тексты/Производители"},
 			"configtpl":{
