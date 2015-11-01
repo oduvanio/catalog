@@ -1,5 +1,5 @@
 {
-    "name": "itlife/catalog",
+    "name": "oduvanio/catalog",
     "description": "catalog for sites infrajs",
     "license": "GPL3",
     "authors": [{
@@ -9,7 +9,7 @@
     "require":{
     	"itlife/files":"~1",
         "itlife/imager":"~1",
-         "itlife/infrajs":"~1"
+        "itlife/infrajs":"~1"
     },
     "autoload":{
         "psr-4":{
