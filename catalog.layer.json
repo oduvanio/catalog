@@ -1,6 +1,7 @@
 {
-	"tpl":"*catalog/rubrics.tpl",
-	"jsontpl":"*catalog/rubrics.php",
+	"tpl":"*catalog/search.tpl",
+	"jsontpl":"*catalog/search.php?val=&m={infra.Crumb.get.m}&p={infra.Crumb.get.p}",
+	"seojsontpl":"*catalog/search.php?seo={infrajs.unicks.catalog.crumb}&val=&m={infra.Crumb.get.m}",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
 	"unick":"catalog",
 	"configtpl":{
@@ -8,9 +9,8 @@
 	},
 	"child":[{
 		"tpl":"*catalog/search.tpl",
-		"jsontpl":"*catalog/search.php?val={crumb.name}&m={infra.Crumb.get.m}&page={infra.Crumb.get.p}",
-		"autoedittpl":{ "fast":"{infra.conf.catalog.dir}" },
-		"conf_prod":true,
+		"jsontpl":"*catalog/search.php?val={crumb.name}&m={infra.Crumb.get.m}&p={infra.Crumb.get.p}",
+		"seojsontpl":"*catalog/search.php?seo={infrajs.unicks.catalog.crumb}&val=&m={infra.Crumb.get.m}",
 		"unick":"search",
 		"configtpl":{
 			"root":"{crumb.parent}"
@@ -18,14 +18,15 @@
 	},{
 		"child":{
 			"tpl":"*catalog/position.tpl",
-			"autoedittpl":{ "fast":"*Каталог/{crumb.parent.name}/{crumb.name}/" },
 			"jsontpl":"*catalog/position.php?val={crumb.parent.name}&art={crumb.name}",
+			"seojsontpl":"*catalog/position.php?seo={infrajs.unicks.catalog.crumb}&val={crumb.parent.name}&art={crumb.name}",
 			"seotpl":{"link":"{crumb.parent.parent}/{{producer}}/{{article}}"}
 		}
 	}],
 	"childs":{
 		"find":{
 			"jsontpl":"*catalog/find.php",
+			"seojsontpl":"*catalog/find.php?seo={infrajs.unicks.catalog.crumb}",
 			"configtpl":{
 				"root":"{crumb.parent}"
 			},
@@ -34,16 +35,20 @@
 		},
 		"producers":{
 			"tpl":"*catalog/producers.tpl",
-			"json":"*catalog/producers.php",
-			"autoedit":{ "fast":"*Тексты/Производители"}
+			"jsontpl":"*catalog/producers.php?lim=0,200&m={infra.Crumb.get.m}",
+			"seojsontpl":"*catalog/producers.php?seo={infrajs.unicks.catalog.crumb}",
+			"autoedit":{ "fast":"*Тексты/Производители"},
+			"configtpl":{
+				"root":"{crumb.parent}"
+			}
 		},
 		"stat":{
 			"tpl":"*catalog/stat.tpl",
 			"json":"*catalog/stat.php",
+			"seojsontpl":"*catalog/stat.php?seo={infrajs.unicks.catalog.crumb}",
 			"autoedit":{ "fast":"*Тексты/Статистика поиска по каталогу"},
-			"seotpl":{
-				"link":"{crumb}",
-				"json":"{json}"
+			"configtpl":{
+				"root":"{crumb.parent}"
 			}
 		}
 	}

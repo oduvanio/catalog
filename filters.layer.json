@@ -1,0 +1,5 @@
+{
+    "tpl":"*catalog/filters.tpl",
+    "tplroot":"filters",
+    "jsontpl":"*catalog/filters.php?m={infra.Crumb.get.m}"
+}
