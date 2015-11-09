@@ -2,7 +2,7 @@
 	"catalog":{
 		"pub":["dir", "title"],
 		"dir":"~catalog/",
-		"cache":["~catalog/","|mem/configmd5.ser"],
+		"cache":["~catalog/","|mem/configmd5.json"],
 		"title":"Каталог",
 		"md":{ },
 		"filename":"Производитель",
