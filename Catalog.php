@@ -34,10 +34,11 @@ class Catalog
 		});
 	}
 	public static function getProducer($producer){
+		$producer=mb_strtolower($producer);
 		return Catalog::cache('getProducer', function &($producer){
 			$data=Catalog::init();
 			$pos=Xlsx::runPoss($data, function &($pos) use($producer) {
-				if($pos['producer']==$producer)return $pos;
+				if(mb_strtolower($pos['producer'])==$producer)return $pos;
 			});
 			return $pos['Производитель'];
 		}, array($producer));
@@ -79,17 +80,23 @@ class Catalog
 			$md['producer']=array_fill_keys($producers, 1);
 			if (!$md['producer']) unset($md['producer']);
 		}
-		if (isset($md['group'])) {
-			if(!is_array($md['group'])) $md['group']=array();
-			$md['group']=array_filter($md['group']);
-			$groups=array_keys($md['group']);
-			$groups=array_filter($groups, function (&$value) {
+		$key='group';
+		if (isset($md[$key])) {
+			if(!is_array($md[$key])){
+				$val=$md[$key];
+				$md[$key]=array();
+				$md[$key][$val]=1;
+			}
+			$md[$key]=array_filter($md[$key]);
+			$values=array_keys($md[$key]);
+			$values=array_filter($values, function (&$value) {
 				if(in_array($value,array('yes','no'))) return true;
+				if(!$value)return false;
 				if(!Catalog::getGroup($value))return false;
 				return true;
 			});
-			$md['group']=array_fill_keys($groups, 1);
-			if (!$md['group']) unset($md['group']);
+			$md[$key]=array_fill_keys($values, 1);
+			if (!$md[$key]) unset($md[$key]);
 		}
 		if (isset($md['reverse'])) {
 			$md['reverse']=(bool)$md['reverse'];
@@ -143,6 +150,134 @@ class Catalog
 			return $data;
 		}, array($group));
 	}
+	/*
+	* getParams Собирает в простую структуру все параметры и возможные значения фильтров для указанной группы
+	*/
+	public static function getParams($group = false){
+		return Catalog::cache('getParams', function &($group){
+			$conf = infra_config();
+			$poss = Catalog::getPoss($group);
+		
+			$params = array();//параметры
+			//ПОСЧИТАЛИ COUNT
+			$count = sizeof($poss); //количество позиций
+			$parametr = array(
+				'posname' => null, //Артикул
+				'posid' => null, //article
+				'mdid' => null, //art
+				'title' => null, //Уникальый Артикул
+				'more' => null, 
+				'separator' => ',',
+				'count' => 0,
+				'filter' => 0,
+				'search' => 0,
+				'option' => array()
+			);
+			$option = array(
+				'id' => null,
+				'title' => null,
+				'count' => 0,
+				'filter' => 0,
+				'search' => 0
+			);
+			//more берутся все параметры, а из main только указанные, расширенные config.catalog.filters
+			$main=$conf['catalog']['filters'];
+
+			foreach($main as $k=>$prop){
+				if ($prop['more']) continue;
+				$prop['mdid']=$k;
+				$params[$k] = array_merge($parametr, $prop);
+			}
+
+			foreach($poss as &$pos){
+				foreach($main as $k=>$prop){
+					if ($prop['more']) continue;
+					$prop=$params[$k];
+					$val=$pos[$prop['posid']];
+					$name=$pos[$prop['posname']];
+					if (preg_match("/[:]/", $val)) continue;//Зачем?
+					if (!Xlsx::isSpecified($val)) continue;
+					
+					$r=false;
+					if($prop['separator']){
+						$arval=explode($prop['separator'], $val);
+						$arname=explode($prop['separator'], $name);
+					}else{
+						$arval=array($val);
+						$arname=array($name);
+					}
+					foreach($arval as $i => $value){
+						$id=mb_strtolower(infra_forFS($value));
+						if (!Xlsx::isSpecified($id)) continue;
+						if (!isset($params[$k]['option'][$id])) {
+							$params[$k]['option'][$id] = array_merge($option, array(
+								'id' => $id,
+								'title' => $arname[$i]
+							));
+						}
+						$r=true;
+						$params[$k]['option'][$id]['count']++;
+					}
+					if ($r)	$params[$k]['count']++;//Позиций с этим параметром
+				}
+				if($pos['more']){
+					foreach($pos['more'] as $k=>$val){
+						if (preg_match("/[:]/", $val)) continue;
+						if (preg_match("/[:]/", $k)) continue;
+						if (!Xlsx::isSpecified($val)) continue;
+
+						if (!isset($params[$k])) {
+							$params[$k] = array_merge($parametr,array(
+								'posname' => $k,
+								'posid' => $k,
+								'mdid' => $k,
+								'title' => $k,
+								'more' => true
+							));
+						}
+						$prop=$params[$k];
+						$r=false;
+						
+						if($prop['separator']){
+							$arval=explode($prop['separator'], $val);
+						}else{
+							$arval=array($val);
+						}
+						foreach($arval as $value){
+							$id=mb_strtolower(infra_forFS($value));
+							if (!Xlsx::isSpecified($id)) continue;
+							$r=true;
+							if (!isset($params[$k]['option'][$id])) {
+								$params[$k]['option'][$id]=array_merge($option, array(
+									'id' => $id,
+									'title' => trim($value)
+								));
+							}
+							$params[$k]['option'][$id]['count']++;
+						}
+						if ($r) $params[$k]['count']++;
+					}
+				}
+			}
+			foreach($main as $k=>$prop){
+				if (!$prop['more']) continue;
+
+				$prop['mdid']=$k;
+				$params[$k] = array_merge($prop, $params[$k]);
+			}
+			uasort($params,function($p1, $p2){
+				if (!empty($p1['group']) || !empty($p2['group'])) {
+					if ($p1['group']==$p2['group']) return 0;
+					if (!empty($p1['group'])) return 1;
+					if (!empty($p2['group'])) return -1;
+				}
+				if($p1['count']>$p2['count'])return -1;
+				if($p1['count']<$p2['count'])return 1;
+				return 0;
+			});
+			return $params;
+		},array($group),isset($_GET['re']));
+	}
 	public static function getPoss($mdgroup){
 		if ($mdgroup) foreach ($mdgroup as $group=>$v) break;
 		else $group = false;
@@ -171,43 +306,43 @@ class Catalog
 					$a=$a['Наименование'];
 					$b=$b['Наименование'];
 					if ($a == $b) return 0;
-				    return ($a < $b) ? -1 : 1;
+					return ($a < $b) ? -1 : 1;
 				});
 			} else if ($md['sort']=='cost') {
 				usort($poss, function ($a, $b) {
 					$a=$a['Цена'];
 					$b=$b['Цена'];
 					if ($a == $b) return 0;
-				    return ($a < $b) ? 1 : -1;
+					return ($a < $b) ? 1 : -1;
 				});
 			} else if ($md['sort']=='change') {
 				$args=array(Catalog::nocache($md));
 				
 				$poss=Catalog::cache('change', function($md) use($poss){
 					foreach($poss as &$pos) {
-					    $conf=infra_config();
-					    $dir=infra_theme($conf['catalog']['dir'].$pos['producer'].'/'.$pos['article'].'/');
-					    if (!$dir) {
+						$conf=infra_config();
+						$dir=infra_theme($conf['catalog']['dir'].$pos['producer'].'/'.$pos['article'].'/');
+						if (!$dir) {
 							$dir=infra_theme($conf['catalog']['dir']);
-					        $pos['time']=0;//filemtime($dir);
-					    } else {
-					        $pos['time']=filemtime($dir);
-					        array_map(function ($file) use (&$pos, $dir) {
-					            if ($file{0}=='.') {
-					                return;
-					            }
-					            $t=filemtime($dir.$file);
-					            if ($t>$pos['time']) {
-					                $pos['time']=$t;
-					            }
-					        }, scandir($dir));
-					    }
+							$pos['time']=0; //filemtime($dir);
+						} else {
+							$pos['time']=filemtime($dir);
+							array_map(function ($file) use (&$pos, $dir) {
+								if ($file{0}=='.') {
+									return;
+								}
+								$t=filemtime($dir.$file);
+								if ($t>$pos['time']) {
+									$pos['time']=$t;
+								}
+							}, scandir($dir));
+						}
 					}
 					usort($poss, function ($a, $b) {
 						$a=$a['time'];
 						$b=$b['time'];
 						if ($a == $b) return 0;
-					    return ($a < $b) ? -1 : 1;
+						return ($a < $b) ? -1 : 1;
 					});
 					return $poss;
 				}, $args, isset($_GET['re']));
@@ -339,7 +474,8 @@ class Catalog
 
 
 		*/
-		if ($pages<$plen) {
+
+		if ($pages<=$plen) {
 			$ar=array_fill(0, $pages+1, 1);
 			$ar=array_keys($ar);
 			array_shift($ar);
@@ -371,7 +507,6 @@ class Catalog
 				$ar[]=$pages;
 			}
 		}
-
 		$ar=array_filter($ar, function (&$num) use ($page) {
 			$n=$num;
 			$num=array('num'=>$n,'title'=>$n);
@@ -432,71 +567,36 @@ class Catalog
 	{
 		if (!sizeof($poss)) return;
 		
+		$params=Catalog::getParams();
 		$filters=array();
-		//Filter producer
-		$key='producer';
-		if (!empty($md[$key])) {
-			$val=$md[$key];
-			$title='Производитель';
-			$filter=array('title'=>$title, 'name'=>infra_seq_short(array(Catalog::urlencode($key))));
-			$poss=array_filter($poss, function ($pos) use ($key, $val) {
-				$prop=$pos[$key];
-				foreach($val as $value => $one) {
-					if ($value === 'yes' && Xlsx::isSpecified($prop)) return true;
-					if ($value === 'no' && !Xlsx::isSpecified($prop)) return true;
-					if ((string)$value === $prop) return true;
-				}
-				return false;
-			});
-			if ($val['no']) {
-				unset($val['no']);
-				$val['Не указано']=1;
-			}
-			if ($val['yes']) {
-				unset($val['yes']);
-				$val['Указано']=1;
-			}
-			$filter['value']=implode(', ', array_keys($val));
-			$filters[]=$filter;
-		}
-		//Filter Цена
-		$key='cost';
-		if (!empty($md[$key])) {
-			$val=$md[$key];
-			$option='Цена';
-			$title=$option;
-			$filter=array('title'=>$title, 'name'=>infra_seq_short(array(Catalog::urlencode($key))));
-			$poss=array_filter($poss, function ($pos) use ($key, $val, $option) {
-				$prop=$pos[$option];
-				foreach($val as $value => $one) {
-					if ($value === 'yes' && Xlsx::isSpecified($prop)) return true;
-					if ($value === 'no' && !Xlsx::isSpecified($prop)) return true;
-					if ((string)$value === $prop) return true;
-				}
-				return false;
-			});
-			if ($val['no']) {
-				unset($val['no']);
-				$val['Не указано']=1;
-			}
-			if ($val['yes']) {
-				unset($val['yes']);
-				$val['Указано']=1;
-			}
-			$filter['value']=implode(', ', array_keys($val));
-			$filters[]=$filter;
-		}
-		//Filter more
-		if (!empty($md['more'])) {
-			foreach ($md['more'] as $key => $val) {
-				$title=$key;
-				$filter=array('title'=>$title, 'name'=>infra_seq_short(array('more', Catalog::urlencode($key))));
-				$poss=array_filter($poss, function ($pos) use ($key, $val) {
-					$prop=$pos['more'][$key];
+		
+		foreach($params as $prop){
+			if ($prop['more']) {
+				if (empty($md['more'])) continue; //Filter more
+				if (empty($md['more'][$prop['mdid']])) continue; //Filter more
+
+				$val=$md['more'][$prop['mdid']];
+				$filter = array(
+					'title' => $prop['title'], 
+					'name' => infra_seq_short(array('more', Catalog::urlencode($prop['mdid'])))
+				);
+				
+				$poss=array_filter($poss, function ($pos) use ($prop, $val) {
+
 					foreach($val as $value => $one) {
-						if ($value === 'yes' && Xlsx::isSpecified($prop)) return true;
-						if ($value === 'no' && !Xlsx::isSpecified($prop)) return true;
-						if ((string)$value === $prop) return true;
+						if ($value === 'yes' && Xlsx::isSpecified($option)) return true;
+						if ($value === 'no' && !Xlsx::isSpecified($option)) return true;
+
+						$option=$pos['more'][$prop['posid']];
+						if ($prop['separator']) {
+							$option=explode($prop['separator'], $option);
+						} else {
+							$option=array($option);
+						}
+						foreach($option as $opt){
+							$opt=mb_strtolower(trim($opt));	
+							if ((string)$value === $opt) return true;
+						}
 					}
 					return false;
 				});
@@ -510,8 +610,33 @@ class Catalog
 				}
 				$filter['value']=implode(', ', array_keys($val));	
 				$filters[]=$filter;
+				
+			} else {
+				if (empty($md[$prop['mdid']])) continue;
+				$val=$md[$prop['mdid']];
+				$filter=array('title'=>$prop['title'], 'name'=>infra_seq_short(array(Catalog::urlencode($prop['mdid']))));
+				$poss=array_filter($poss, function ($pos) use ($prop, $val) {
+					$prop=mb_strtolower($pos[$prop['posid']]);
+					foreach($val as $value => $one) {
+						if ($value === 'yes' && Xlsx::isSpecified($prop)) return true;
+						if ($value === 'no' && !Xlsx::isSpecified($prop)) return true;
+						if ((string)$value === $prop) return true;
+					}
+					return false;
+				});
+				if ($val['no']) {
+					unset($val['no']);
+					$val['Не указано']=1;
+				}
+				if ($val['yes']) {
+					unset($val['yes']);
+					$val['Указано']=1;
+				}
+				$filter['value']=implode(', ', array_keys($val));
+				$filters[]=$filter;
 			}
 		}
+		
 		//Filter group
 		$key='group';
 		if (!empty($md[$key])) {
@@ -561,13 +686,21 @@ class Catalog
 		$max=$value;
 		$yes=0;
 		$yesall=0;
+		/*
+			$values массив со всеми возможными занчениями каждого параметра
+			каждое значение характеризуется
+			count - сколько всего в текущем разделе, определяющего набор фильтров
+			search - сколько всего найдено с md
+			filter - сколько найдено если данный параметр не указана в md
+		*/
 		foreach($opt['values'] as $v=>$c){
 			if(Xlsx::isSpecified($v)){
-				$yes+=$c['search'];
-				$yesall+=$c['count'];
+				$yes+=$c['search'];//Сколько найдено
+				$yesall+=$c['count'];//Сколько в группе
 			}
 		}
-		$opt['yes']=$yes;
+		$opt['search']=$yes;
+		$opt['count']=$yesall;
 		if(!$showhard && $count > $yesall * 10){//Если отмеченных менее 10% то такие опции не показываются
 			return false;
 		}
@@ -631,24 +764,23 @@ class Catalog
 			});
 		}
 		/*if(sizeof($opt['values'])==1){
-            if($opt['yes']==$count){//Значение есть у всех позиций и только один вариант
-                unset($params[$k]);
-                continue;
-            }
-        }*/
-        if(!$opt['values']&&$opt['type']!='slider'){
-            if($opt['yesall']==$count){//Слишком много занчений но при этом у всех позиций они указаны и нет no yes
-                return false;
-            }
-        }
-		$opt['yesall']=$yesall;
-        $opt['no']=$search-$opt['yes']; //из общего количества вычесть количество с yes
-		$opt['noall']=$count-$opt['yesall']; //из общего количества вычесть количество с yes
+			if($opt['yes']==$count){//Значение есть у всех позиций и только один вариант
+				unset($params[$k]);
+				continue;
+			}
+		}*/
+		if(!$opt['values']&&$opt['type']!='slider'){
+			if($opt['count']==$count){//Слишком много занчений но при этом у всех позиций они указаны и нет no yes
+				return false;
+			}
+		}
+		$opt['nosearch']=$search-$opt['search']; //из общего количества вычесть количество указанных
+		$opt['nocount']=$count-$opt['count']; //из общего количества вычесть количество с yes
 		return $opt;
 	}
 	public static function getPos(&$pos){
 		$args=array($pos['producer'],$pos['article']);
-		return Catalog::cache('getPos', function() use($pos){
+		return infra_admin_cache('getPos', function() use($pos){
 			Xlsx::addFiles($pos);
 			$files=explode(',', @$pos['Файлы']);
 			foreach ($files as $f) {
@@ -690,7 +822,6 @@ class Catalog
 		$res=Catalog::cache('search.php filter list', function ($md) {
 			$conf=infra_config();
 			$ans['list']=Catalog::getPoss($md['group']);
-			
 			//ЭТАП filters list
 			$ans['filters']=Catalog::filtering($ans['list'], $md);
 			foreach ($md['group'] as $now => $one) break;

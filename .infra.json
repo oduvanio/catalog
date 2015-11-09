@@ -2,13 +2,33 @@
 	"catalog":{
 		"pub":["dir", "title"],
 		"dir":"~catalog/",
-		"cache":["~catalog/"],
+		"cache":["~catalog/","|mem/configmd5.ser"],
 		"title":"Каталог",
-		"md":{
-	        "use":false
-	    },
+		"md":{ },
 		"filename":"Производитель",
 		"columns":[],
-		"filters":{}
+		"filteroneitem":true, //Показывать ли фильтр в котором только один пункт, который true для всей выборке
+		"filters":{
+			"producer":{
+				"posid":"producer",
+				"posname":"Производитель",
+				"title":"Производитель",
+				"separator":false
+			},
+			"cost":{
+				"posid":"Цена",
+				"posname":"Цена", //Можно ли писать комменты
+				"title":"Цена",
+				"separator":false
+			},
+			"фасовка":{
+				"more":true,
+				"group":"a"
+			},
+			"торг марка":{
+				"more":true,
+				"group":"a"
+			}
+		}
 	}
 }

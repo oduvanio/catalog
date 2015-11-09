@@ -23,6 +23,8 @@ $pos=Catalog::cache('position', function($val, $art){
 	});
 }, $args, isset($_GET['re']));
 
+
+
 if(isset($_GET['seo'])) {
 	if(!$pos){
 		return infra_err($ans,'Position not found');

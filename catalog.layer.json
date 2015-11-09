@@ -3,6 +3,7 @@
 	"jsontpl":"*catalog/search.php?val=&m={infra.Crumb.get.m}&p={infra.Crumb.get.p}",
 	"seojsontpl":"*catalog/search.php?seo={infrajs.unicks.catalog.crumb}&val=&m={infra.Crumb.get.m}",
 	"autoedittpl":{ "fast":"{infra.conf.catalog.dir}"},
+	"showanimate":true,
 	"unick":"catalog",
 	"configtpl":{
 		"root":"{crumb}"

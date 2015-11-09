@@ -15,6 +15,24 @@
 			font-size:140%;
 		}
 
+		@media(max-width:992px) { 	/*md*/
+			.catgrouplist .img {
+				width:100px;
+			}
+			.catgrouplist .name {
+				font-size:90%;
+			}
+		}
+		@media(max-width:768px) { 	/*sm*/
+			.catgrouplist .img {
+				width:120px;
+			}
+			.catgrouplist .name {
+				font-size:120%;
+			}
+		}
+
+		
 	</style>
 	<div class="catgrouplist row">
 		{::groups_group}
