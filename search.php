@@ -7,9 +7,6 @@ namespace itlife\catalog;
 
 use itlife\files\Xlsx;
 
-
-$r=infra_theme("|mem/configmd5.ser");
-
 $ans=array();
 $md=Catalog::initMark($ans);
 
