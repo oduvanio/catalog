@@ -3,7 +3,7 @@
 namespace itlife\catalog;
 
 use itlife\files\Xlsx;
-
+infra_cache_no();
 $orig_val=infra_toutf(strip_tags($_GET['val']));
 $orig_art=infra_toutf(strip_tags($_GET['art']));
 $val=infra_strtolower($orig_val);
@@ -15,7 +15,6 @@ $ans=array();
 
 $pos=Catalog::cache('position', function($val, $art){
 	$data=Catalog::init(); // список всей продукции
-	
 	return Xlsx::runPoss($data, function (&$pos, $i, &$group) use (&$val, &$art) {
 		if (mb_strtolower($pos['producer'])!==$val) return;
 		if (mb_strtolower($pos['article'])!==$art) return;

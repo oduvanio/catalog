@@ -7,6 +7,8 @@ namespace itlife\catalog;
 
 use itlife\files\Xlsx;
 
+
+
 $ans=array();
 $md=Catalog::initMark($ans);
 
@@ -35,6 +37,8 @@ if(isset($_GET['seo'])){
 	return infra_ans($ans);
 }
 
+
+infra_cache_no();
 if (isset($_GET['p'])) {
 	$ans['page']=(int)$_GET['p'];
 	if ($ans['page']<1) $ans['page']=1;
