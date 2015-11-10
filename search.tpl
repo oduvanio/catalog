@@ -26,11 +26,12 @@
 		{data.filters::showfilter}
 	</div>
 	{showfilter:}
-		<div class="item" style="cursor:pointer" onclick="infra.scroll='.breadcrumb'; infra.Crumb.go('?{infrajs.unicks.catalog.crumb}{:cat.mark.add}{name}:'); return false;">
-			<a onclick="return false;" href="?{infrajs.unicks.catalog.crumb}{:cat.mark.add}{name}:">
-				<span class="glyphicon glyphicon-remove" aria-hidden="true" style="color:red; font-size:80%"></span>
-				{title}: <b>{value}</b>
-			</a>
+		<div class="item" onclick="infra.scroll='.breadcrumb'; return false;">
+			
+			<a href="?{infrajs.unicks.catalog.crumb}{:cat.mark.add}{name}:">
+				<span class="glyphicon glyphicon-remove" style="color:red; font-size:80%"></span>
+				{title}:</a> <b>{value}</b>
+			
 		</div>
 {searchbad:}
 	<h1>{title}</h1>

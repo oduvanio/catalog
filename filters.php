@@ -36,7 +36,8 @@ $res = Catalog::cache('filters.php filter list', function ($md) {
 					$arval=array($pos[$prop['posid']]);
 				}
 				foreach($arval as $value){
-					$id=mb_strtolower(infra_forFS($value));
+					$idi=infra_forFS($value);
+					$id=mb_strtolower($idi);
 					if (!Xlsx::isSpecified($id)) continue;
 					$r=true;
 					$params[$k]['option'][$id]['search']++;
@@ -56,7 +57,8 @@ $res = Catalog::cache('filters.php filter list', function ($md) {
 					$arname=array($pos[$prop['posname']]);
 				}
 				foreach($arval as $i => $value){
-					$id=mb_strtolower(infra_forFS($value));
+					$idi=infra_forFS($value);
+					$id=mb_strtolower($idi);
 
 					if (!Xlsx::isSpecified($id)) continue;
 					$r=true;
@@ -68,6 +70,7 @@ $res = Catalog::cache('filters.php filter list', function ($md) {
 
 		$params[$k]['nosearch']=sizeof($poss)-$params[$k]['search'];
 	}
+	
 	//ПОСЧИТАЛИ FILTER как если бы не было выбрано в этой группе md
 	foreach ($params as $k => $prop) {
 		if ($prop['more']) {
@@ -91,7 +94,8 @@ $res = Catalog::cache('filters.php filter list', function ($md) {
 					$arval=array($pos['more'][$prop['posid']]);
 				}
 				foreach($arval as $value){
-					$id=mb_strtolower(infra_forFS($value));
+					$idi=infra_forFS($value);
+					$id=mb_strtolower($idi);
 					if (!Xlsx::isSpecified($id)) continue;
 					$r=true;
 					$params[$k]['option'][$id]['filter']++;
@@ -115,7 +119,8 @@ $res = Catalog::cache('filters.php filter list', function ($md) {
 				}
 				
 				foreach($arval as $i => $value){
-					$id=mb_strtolower(infra_forFS($value));
+					$idi=infra_forFS($value);
+					$id=mb_strtolower($idi);
 					if (!Xlsx::isSpecified($id)) continue;
 					$r=true;
 					$params[$k]['option'][$id]['filter']++;

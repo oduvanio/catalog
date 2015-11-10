@@ -169,6 +169,7 @@ class Catalog
 				'more' => null, 
 				'separator' => ',',
 				'count' => 0,
+				'group' => false, //Группа параметра для расположения рядом
 				'filter' => 0,
 				'search' => 0,
 				'option' => array()
@@ -207,11 +208,12 @@ class Catalog
 						$arname=array($name);
 					}
 					foreach($arval as $i => $value){
-						$id=mb_strtolower(infra_forFS($value));
+						$idi=infra_forFS($value);
+						$id=mb_strtolower($idi);
 						if (!Xlsx::isSpecified($id)) continue;
 						if (!isset($params[$k]['option'][$id])) {
 							$params[$k]['option'][$id] = array_merge($option, array(
-								'id' => $id,
+								'id' => $idi,
 								'title' => $arname[$i]
 							));
 						}
@@ -244,12 +246,13 @@ class Catalog
 							$arval=array($val);
 						}
 						foreach($arval as $value){
-							$id=mb_strtolower(infra_forFS($value));
+							$idi=infra_forFS($value);
+							$id=mb_strtolower($idi);
 							if (!Xlsx::isSpecified($id)) continue;
 							$r=true;
 							if (!isset($params[$k]['option'][$id])) {
 								$params[$k]['option'][$id]=array_merge($option, array(
-									'id' => $id,
+									'id' => $idi,
 									'title' => trim($value)
 								));
 							}
@@ -259,9 +262,10 @@ class Catalog
 					}
 				}
 			}
+
 			foreach($main as $k=>$prop){
 				if (!$prop['more']) continue;
-
+				if (empty($params[$k])) continue;
 				$prop['mdid']=$k;
 				$params[$k] = array_merge($prop, $params[$k]);
 			}
@@ -275,6 +279,7 @@ class Catalog
 				if($p1['count']<$p2['count'])return 1;
 				return 0;
 			});
+
 			return $params;
 		},array($group),isset($_GET['re']));
 	}
@@ -571,31 +576,42 @@ class Catalog
 		$filters=array();
 		
 		foreach($params as $prop){
+
 			if ($prop['more']) {
 				if (empty($md['more'])) continue; //Filter more
 				if (empty($md['more'][$prop['mdid']])) continue; //Filter more
+				$valtitles = array();
+				$val = $md['more'][$prop['mdid']];
+				foreach($val as $value => $one) $valtitles[$value] = $value;
 
-				$val=$md['more'][$prop['mdid']];
 				$filter = array(
 					'title' => $prop['title'], 
 					'name' => infra_seq_short(array('more', Catalog::urlencode($prop['mdid'])))
 				);
 				
-				$poss=array_filter($poss, function ($pos) use ($prop, $val) {
+
+				$poss=array_filter($poss, function ($pos) use ($prop, $val, &$valtitles) {
 
 					foreach($val as $value => $one) {
 						if ($value === 'yes' && Xlsx::isSpecified($option)) return true;
 						if ($value === 'no' && !Xlsx::isSpecified($option)) return true;
 
 						$option=$pos['more'][$prop['posid']];
+						$titles=$pos['more'][$prop['posname']];
 						if ($prop['separator']) {
 							$option=explode($prop['separator'], $option);
+							$titles=explode($prop['separator'], $titles);
 						} else {
 							$option=array($option);
+							$titles=array($titles);
 						}
-						foreach($option as $opt){
-							$opt=mb_strtolower(trim($opt));	
-							if ((string)$value === $opt) return true;
+
+						foreach($option as $k=>$opt){
+							$id=infra_forFS($opt);
+							if (strcasecmp($value, $id)==0) {
+								$valtitles[$value]=$titles[$k];
+								return true;
+							}
 						}
 					}
 					return false;
@@ -608,22 +624,48 @@ class Catalog
 					unset($val['yes']);
 					$val['Указано']=1;
 				}
-				$filter['value']=implode(', ', array_keys($val));	
+
+				$filter['value']=implode(', ', array_values($valtitles));
 				$filters[]=$filter;
+				
 				
 			} else {
 				if (empty($md[$prop['mdid']])) continue;
-				$val=$md[$prop['mdid']];
-				$filter=array('title'=>$prop['title'], 'name'=>infra_seq_short(array(Catalog::urlencode($prop['mdid']))));
-				$poss=array_filter($poss, function ($pos) use ($prop, $val) {
-					$prop=mb_strtolower($pos[$prop['posid']]);
+				$valtitles = array();
+				$val = $md[$prop['mdid']];
+				foreach($val as $value => $one) $valtitles[$value] = $value;
+
+				$filter=array(
+					'title' => $prop['title'], 
+					'name' => infra_seq_short(array(Catalog::urlencode($prop['mdid'])))
+				);
+
+				$poss = array_filter($poss, function ($pos) use ($prop, $val, &$valtitles) {
 					foreach($val as $value => $one) {
 						if ($value === 'yes' && Xlsx::isSpecified($prop)) return true;
 						if ($value === 'no' && !Xlsx::isSpecified($prop)) return true;
-						if ((string)$value === $prop) return true;
+						
+						$option=$pos[$prop['posid']];
+						$titles=$pos[$prop['posname']];
+
+						if ($prop['separator']) {
+							$option=explode($prop['separator'], $option);
+							$titles=explode($prop['separator'], $titles);
+						} else {
+							$option=array($option);
+							$titles=array($titles);
+						}
+						foreach($option as $k=>$opt){
+							$id=infra_forFS($opt);
+							if (strcasecmp($value, $id)==0) {
+								$valtitles[$value]=$titles[$k];
+								return true;
+							}
+						}
 					}
 					return false;
 				});
+
 				if ($val['no']) {
 					unset($val['no']);
 					$val['Не указано']=1;
@@ -632,8 +674,9 @@ class Catalog
 					unset($val['yes']);
 					$val['Указано']=1;
 				}
-				$filter['value']=implode(', ', array_keys($val));
-				$filters[]=$filter;
+
+				$filter['value'] = implode(', ', array_values($valtitles));
+				$filters[] = $filter;
 			}
 		}
 		
@@ -704,6 +747,7 @@ class Catalog
 		if(!$showhard && $count > $yesall * 10){//Если отмеченных менее 10% то такие опции не показываются
 			return false;
 		}
+		
 		$type=false;
 		foreach($opt['values'] as $val=>$c){//Слайдер
 			if(is_string($val)){
@@ -725,8 +769,7 @@ class Catalog
 			}
 		}
 		$opt['type']=$type;
-		
-		
+	
 		if($opt['type']=='string'){
 			if(sizeof($opt['values'])>30){
 				$opt['values']=array();
@@ -736,10 +779,12 @@ class Catalog
 			}
 			if ($showhard) {	
 				foreach($showhard as $show => $one) {
+					$title=$show;
+					$show=mb_strtolower($show);
 					if ($show=='yes') continue;
 					if ($show=='no') continue;
 					if ($opt['values'][$show]) continue;
-					$title=$show;
+					
 					$opt['values'][$show] = array('id'=>$show, 'title'=>$title);
 				}
 			}
@@ -755,6 +800,7 @@ class Catalog
 				//$opt['values']=array_slice($opt['values'],0,6,true);
 			//}
 		}
+
 		if($opt['type']=='string'){
 			usort($opt['values'], function ($v1, $v2){
 				//if ($v1['filter']>$v2['filter']) return -1;
