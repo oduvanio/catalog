@@ -20,14 +20,6 @@
 				"posname":"Цена", //Можно ли писать комменты
 				"title":"Цена",
 				"separator":false
-			},
-			"фасовка":{
-				"more":true,
-				"group":"a"
-			},
-			"торг марка":{
-				"more":true,
-				"group":"a"
 			}
 		}
 	}

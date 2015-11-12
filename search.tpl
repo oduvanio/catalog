@@ -81,7 +81,7 @@
 	</ul>
 {pageset:}
 	<div class="clearfix"></div>
-	<a class="pull-right" onclick="$('.settings').slideToggle('fast')" style="cursor:pointer"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
+	<a class="pull-right" onclick="$('.settings').slideToggle('fast'); return false;" style="cursor:pointer"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
 	<div class="settings alert alert-info" style="display:none">
 		Сортировать <a style="font-weight:{data.md.sort??:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort'>по умолчанию</a>,
 			<a style="font-weight:{data.md.sort=:name?:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:name'>по названию</a>, 
