@@ -39,7 +39,7 @@
 	</div>
 	{groups_group:}
 		<div class="col-sm-6">
-			<a class="thumbnail" onclick="infrajs.scroll='.breadcrumb'" href="?{infrajs.unicks.catalog.crumb}{:mark.add}group::.{title}:1">
+			<a class="thumbnail" data-anchor='.breadcrumb' href="?{infrajs.unicks.catalog.crumb}{:mark.add}group::.{title}:1">
 				<table>
 					<tr>
 						<td class="img">
@@ -60,7 +60,7 @@
 	{brcrumb:}
 		{~last()?:crumblast?:crumb}
 	{crumb:}
-		<li><a onclick="infrajs.scroll='.breadcrumb'" href="?{infrajs.unicks.catalog.crumb}{href?:/}{href}{add?:add?(nomark|:mark.set)}">{title}</a></li>
+		<li><a data-anchor='.breadcrumb' href="?{infrajs.unicks.catalog.crumb}{href?:/}{href}{add?:add?(nomark|:mark.set)}">{title}</a></li>
 	{crumblast:}
 		<li class="active">{title}</li>
 	{add:}{:mark.add}{add}
@@ -73,4 +73,4 @@
 		</ul>
 	</div>
 	{items:}
-		<li role="presentation"><a onclick="infrajs.scroll='.breadcrumb'" href="?{config.root}/{~key}{:mark.set}">{title}</a></li>
+		<li role="presentation"><a data-anchor='.breadcrumb' href="?{config.root}/{~key}{:mark.set}">{title}</a></li>

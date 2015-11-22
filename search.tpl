@@ -26,7 +26,7 @@
 		{data.filters::showfilter}
 	</div>
 	{showfilter:}
-		<div class="item" onclick="infra.scroll='.breadcrumb'; return false;">
+		<div class="item" data-anchor='.breadcrumb'>
 			
 			<a href="?{infrajs.unicks.catalog.crumb}{:cat.mark.add}{name}:">
 				<span class="glyphicon glyphicon-remove" style="color:red; font-size:80%"></span>
@@ -64,7 +64,7 @@
 	<h2>{data.name}</h2>
 	{~length(data.filters)?:showfilters}
 	<p>
-		<a onclick="infra.scroll='.breadcrumb';" href="?{infrajs.unicks.catalog.crumb}{:cat.mark.set}">{data.count} {~words(data.count,:позиция,:позиции,:позиций)}</a>
+		<a data-anchor='.breadcrumb' href="?{infrajs.unicks.catalog.crumb}{:cat.mark.set}">{data.count} {~words(data.count,:позиция,:позиции,:позиций)}</a>
 	</p>
 {cat_item:}
 	<div class="position">
@@ -83,25 +83,25 @@
 	<div class="clearfix"></div>
 	<a class="pull-right" onclick="$('.settings').slideToggle('fast'); return false;" style="cursor:pointer"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
 	<div class="settings alert alert-info" style="display:none">
-		Сортировать <a style="font-weight:{data.md.sort??:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort'>по умолчанию</a>,
-			<a style="font-weight:{data.md.sort=:name?:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:name'>по названию</a>, 
-			<a style="font-weight:{data.md.sort=:cost?:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:cost'>по цене</a>, 
-			<a style="font-weight:{data.md.sort=:change?:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:change'>по дате</a><br>
+		Сортировать <a style="font-weight:{data.md.sort??:bold}" data-anchor='.pagination' href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort'>по умолчанию</a>,
+			<a style="font-weight:{data.md.sort=:name?:bold}" data-anchor='.pagination' href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:name'>по названию</a>, 
+			<a style="font-weight:{data.md.sort=:cost?:bold}"data-anchor='.pagination' href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:cost'>по цене</a>, 
+			<a style="font-weight:{data.md.sort=:change?:bold}" data-anchor='.pagination' href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}sort:change'>по дате</a><br>
 		Показывать по
-		<select onchange="infrajs.scroll='.pagination'; infra.Crumb.go('?{infrajs.unicks.catalog.crumb}{:cat.mark.add}count:'+$(this).val())">
+		<select onchange="infra.Crumb.go('?{infrajs.unicks.catalog.crumb}{:cat.mark.add}count:'+$(this).val()); ascroll.go('.pagination');">
 			<option {data.md.count=:5?:selected}>5</option>
 			<option {data.md.count=:10?:selected}>10</option>
 			<option {data.md.count=:20?:selected}>20</option>
 			<option {data.md.count=:100?:selected}>100</option>
 		</select> позиций на странице<br>
-		Показать в <a style="font-weight:{data.md.reverse?:bold}" onclick="infrajs.scroll='.pagination'" href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}reverse:{data.md.reverse??:1}'>обратном порядке</a>.
+		Показать в <a style="font-weight:{data.md.reverse?:bold}" data-anchor='.pagination' href='?{infrajs.unicks.catalog.crumb}{:cat.mark.add}reverse:{data.md.reverse??:1}'>обратном порядке</a>.
 	</div>
 {pagenum:}
 	<li class="{active?:pageact}{empty?:pagedis}" style="padding-top:10px">
 		{empty?:pagenumt?:pagenuma}
 	</li>
 	{pagenumt:}<a>{title}</a>
-	{pagenuma:}<a onclick="infrajs.scroll='.pagination'" href="?{crumb}{:cat.mark.set}&p={num}">{title}</a>
+	{pagenuma:}<a data-anchor='.pagination' href="?{crumb}{:cat.mark.set}&p={num}">{title}</a>
 {pageact:} active
 {pagedis:} disabled
 {space:}&nbsp;

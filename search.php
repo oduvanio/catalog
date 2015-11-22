@@ -49,13 +49,13 @@ if (isset($_GET['p'])) {
 
 
 
-$args=array($md);
+$args=array($md, $ans['page']);
 $re=isset($_GET['re']);
 if (!$re) {
 	if ($ans['page'] != 1) $re = true;
-	if ($ans['more']) $re = true;
+	if ($md['more']) $re = true;//Не сохраняем когда есть фильтры more
 }
-$ans=Catalog::cache('search.php', function ($md) use($ans) {
+$ans=Catalog::cache('search.php', function ($md, $page) use($ans) {
 	//1
 	$ans['is']=''; //group producer search Что было найдено по запросу val (Отдельный файл is:change)
 	$ans['descr']='';//абзац текста в начале страницы';
@@ -118,11 +118,11 @@ $ans=Catalog::cache('search.php', function ($md) use($ans) {
 
 	//Numbers
 	$pages=ceil(sizeof($ans['list'])/$md['count']);
-	if ($pages<$ans['page']) {
-		$ans['page']=$pages;
+	if ($pages<$page) {
+		$page=$pages;
 	}
-	$ans['numbers']=Catalog::numbers($ans['page'], $pages, 11);
-	$ans['list']=array_slice($ans['list'], ($ans['page']-1)*$md['count'], $md['count']);
+	$ans['numbers']=Catalog::numbers($page, $pages, 11);
+	$ans['list']=array_slice($ans['list'], ($page-1)*$md['count'], $md['count']);
 
 	//Text
 	$ans['text']=infra_loadTEXT('*files/get.php?'.$conf['catalog']['dir'].'articals/'.$ans['title']);//Изменение текста не отражается как изменение каталога, должно быть вне кэша
