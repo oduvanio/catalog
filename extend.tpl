@@ -50,7 +50,7 @@
 		</div>
 		{Цена?:priceblock}
 		<div class="padding">
-			<span class="a" onclick="$(this).next().slideToggle();">Описание</span>
+			<span style="border-bottom:1px dashed gray; cursor:pointer" onclick="$(this).next().slideToggle();">Описание</span>
 			<div style="display:none;">
 				{Описание}
 				<b><a href="?{infrajs.unicks.catalog.crumb}/{producer}/{article}{:cat.mark.set}">Подробнее</a></b>
@@ -67,7 +67,7 @@
 	{comma:}, 
 	{no:}Нет
 	{producerlogo:}
-		<a onclick="infrajs.scroll='.breadcrumb'" title="Посмотреть продукцию {Производитель}" href="?{infrajs.unicks.catalog.crumb}{:cat.mark.add}producer::.{producer}:1" class="pull-right" style="margin:0 0 5px 5px">
+		<a onclick="infrajs.scroll='.breadcrumb'" title="Посмотреть продукцию {Производитель}" href="?{infrajs.unicks.catalog.crumb}{:cat.mark.add}producer::.{producer}:1" class="pull-right" style="margin:5px 0 5px 5px">
 			<img src="?*imager/imager.php?w=100&h=100&src={infra.conf.catalog.dir}{producer}/&or=*imager/empty" />
 		</a>
 {cat::}*catalog/cat.tpl
