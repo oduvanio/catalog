@@ -107,7 +107,7 @@ $ans=Catalog::cache('search.php', function ($md, $page) use($ans) {
 			$ans['breadcrumbs'][]=array('href'=>'','title'=>$group['name'], 'add'=>'group::group.'.$p.':1');
 		}, $group['path']);
 		if (sizeof($ans['breadcrumbs'])==1) {
-			array_unshift($ans['breadcrumbs'],array('href'=>'/',"title"=>"Главная","nomark"=>true));
+			array_unshift($ans['breadcrumbs'],array('main'=>true,"title"=>"Главная","nomark"=>true));
 		}
 		$ans['name']=$group['name'];//имя группы длинное
 		$ans['descr']=@$group['descr']['Описание группы'];

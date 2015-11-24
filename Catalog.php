@@ -165,7 +165,7 @@ class Catalog
 				'posname' => null, //Артикул
 				'posid' => null, //article
 				'mdid' => null, //art
-				'title' => null, //Уникальый Артикул
+				'title' => null, //Уникальный Артикул
 				'more' => null, 
 				'separator' => ',',
 				'count' => 0,
@@ -311,7 +311,7 @@ class Catalog
 					$a=$a['Наименование'];
 					$b=$b['Наименование'];
 					if ($a == $b) return 0;
-					return ($a < $b) ? -1 : 1;
+					return ($a < $b) ? 1 : -1;
 				});
 			} else if ($md['sort']=='cost') {
 				usort($poss, function ($a, $b) {

@@ -19,6 +19,7 @@ namespace itlife\catalog;
 class Mark
 {
 	private $sym = ':';
+	private $symeq = '=';
 	//Если метка есть а даных нет считаем что метка устарела.
 	//Недопускаем ситуации что метка появилась до появления привязанных к ней данных
 
@@ -94,18 +95,24 @@ class Mark
 		
 		$add=implode($this->sym, $r);
 		if($add!==''){
-
-			$r=explode($this->sym, $add);
-			$l=sizeof($r);
-
-			if ($l%2) {
-				$l++;
-				$r[]='';
-			}
-
-			for ($i = 0; $i < $l; $i = $i + 2) {
-				if (!$r[$i]) continue;
-				infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
+			$r = explode($this->sym, $add);
+			$l = sizeof($r);
+			if ($this->sym == $this->symeq) {
+				if ($l%2) {
+					$l++;
+					$r[] = '';
+				}
+				for ($i = 0; $i < $l; $i = $i + 2) {
+					if (!$r[$i]) continue;
+					infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
+				}
+			} else {
+				for ($i = 0; $i < $l; $i = $i + 1) {
+					if (!$r[$i]) continue;
+					$rr = explode($this->symeq, $r[$i], 2);
+					if (!$rr[0]) continue;
+					infra_seq_set($this->data, infra_seq_right($rr[0]), $rr[1]);
+				}
 			}
 		}
 		
