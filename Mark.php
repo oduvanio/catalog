@@ -2,10 +2,10 @@
 namespace itlife\catalog;
 
 /**
- * Класс обеспечивает негарантированное хранение параметров в экстрокороткой строке из 2 символов
- * Это работает за счёт сохранения объекта данных в 2х символах, со временем данные этих 2х символов буду заменены, но нам важно только короткая память
+ * Класс обеспечивает негарантированное хранение параметров в экстрокороткой строке из ~2 символов
+ * Это работает за счёт сохранения объекта данных в 2х символах, со временем данные этих ~2х символов буду заменены, но нам важно только короткая память
  * возможность обменяться ссылками, кнопки вперёд назад.
- * так называемая приставка окружения env содержит в себе зашифрованную часть (2 символа) и изменение к зашифрованной части
+ * так называемая приставка окружения env содержит в себе зашифрованную часть (~2 символа) и изменение к зашифрованной части
  * например ?Каталог:aa содержит защифрованную часть aa которая на сервере развернётся в объект данных {page:1,prod:"Арсенал"}
  * например aa:page:2 - зашифрованная часть aa объединится с изменениями и получится {page:2,prod:"Арсенал"}
  * объект данных {page:2,prod:"Арсенал"} зашифруется в новую комбинацию xx и дальнейшие ссылки уже относительно этой пары символов
@@ -19,6 +19,7 @@ namespace itlife\catalog;
 class Mark
 {
 	private $sym = ':';
+	private $symeq = '=';
 	//Если метка есть а даных нет считаем что метка устарела.
 	//Недопускаем ситуации что метка появилась до появления привязанных к ней данных
 
@@ -65,7 +66,17 @@ class Mark
 		$r=explode($this->sym, $mark);
 		$this->mark=array_shift($r);
 		if ($this->mark!='') {
-			$data=infra_mem_get($this->prefix.$this->mark);
+
+			$src=infra_theme('~.marks/'.$this->prefix.$this->mark.'.json');
+			if ($src) {
+				$data = file_get_contents($src);
+				$data = infra_json_decode($data);
+			} else {
+				$data = false;
+			}
+
+			//$data=infra_mem_get($this->prefix.$this->mark);
+
 			if (!$data || !is_array($data['data'])) {
 				$this->mark='';
 			} else {
@@ -84,18 +95,24 @@ class Mark
 		
 		$add=implode($this->sym, $r);
 		if($add!==''){
-
-			$r=explode($this->sym, $add);
-			$l=sizeof($r);
-
-			if ($l%2) {
-				$l++;
-				$r[]='';
-			}
-
-			for ($i = 0; $i < $l; $i = $i + 2) {
-				if (!$r[$i]) continue;
-				infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
+			$r = explode($this->sym, $add);
+			$l = sizeof($r);
+			if ($this->sym == $this->symeq) {
+				if ($l%2) {
+					$l++;
+					$r[] = '';
+				}
+				for ($i = 0; $i < $l; $i = $i + 2) {
+					if (!$r[$i]) continue;
+					infra_seq_set($this->data, infra_seq_right($r[$i]), $r[$i+1]);
+				}
+			} else {
+				for ($i = 0; $i < $l; $i = $i + 1) {
+					if (!$r[$i]) continue;
+					$rr = explode($this->symeq, $r[$i], 2);
+					if (!$rr[0]) continue;
+					infra_seq_set($this->data, infra_seq_right($rr[0]), $rr[1]);
+				}
 			}
 		}
 		
@@ -126,7 +143,18 @@ class Mark
 			while ($isoutdate&&$len<$this->len+$raise) {
 				$len++;
 				$mark=substr($key, 0, $len);
-				$otherdata=infra_mem_get($that->prefix.$mark);
+				
+				
+				$src=infra_theme('~.marks/'.$that->prefix.$mark.'.json');
+				if ($src) {
+					$otherdata = file_get_contents($src);
+					$otherdata = infra_json_decode($otherdata);
+				} else {
+					$otherdata = false;
+				}
+
+				//$otherdata=infra_mem_get($that->prefix.$mark);
+
 				if ($otherdata && is_array($otherdata['data']) && $otherdata['time']) {
 					if ($otherdata['data']==$data) {
 						$isoutdate=false;//Такая метка уже есть и она правильная
@@ -149,10 +177,22 @@ class Mark
 				error_log($that->error);
 				$mark=substr($key, 0, $this->len);
 			}
-			infra_mem_set($that->prefix.$mark, array(
+
+			$src=infra_theme('~.marks/');
+			if(!$src)die('Fatal error no marks dir');
+			$src=$src.$this->prefix.$mark.'.json';
+			$data = infra_json_encode(array(
 				'time'=>time(),
 				'data'=>$data
 			));
+			$data = file_put_contents($src, $data);
+			
+
+			//infra_mem_set($that->prefix.$mark, array(
+			//	'time'=>time(),
+			//	'data'=>$data
+			//));
+			
 			return $mark;
 		});
 		return $mark;

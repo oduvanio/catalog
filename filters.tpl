@@ -20,9 +20,14 @@
 			color:#aaa;
 			font-size:80%;
 		}
+		.catfilters label {
+			font-weight:normal;
+		}
 		.catfilters .disabled {
 			color:#999;
 		}
+		
+		
 	</style>
 	{~length(data.template)?:filtersbody}
 </div>
@@ -32,32 +37,29 @@
 			{data.template::param}
 		</div>
 		<div class="space">
-			{~words(data.count,:ser1,:ser2,:ser5)} <a onclick="infra.scroll='.breadcrumb'" href="?catalog{:cat.mark.set}">{data.count} {~words(data.count,:pos1,:pos2,:pos5)}</a>
+			Найдено <a onclick="infra.scroll='.breadcrumb'" href="?catalog{:cat.mark.set}">{data.search} {~words(data.search,:pos1,:pos2,:pos5)}</a>
 		</div>
 		{pos1:}позиция
 		{pos2:}позиции
 		{pos5:}позиций
-		{ser1:}Найдена
-		{ser2:}Найдены
-		{ser5:}Нейдено
 {param:}
 	<div style="margin-top:5px; border-bottom:1px solid #ccc">
 		{:optionHead}
 		{row::option}
 	</div>
 {option:}
-	<div class="checkbox {count??:disabled}">
-	    <label>
-	      {:box} {title}&nbsp;<small>{count}</small>
-	    </label>
-  	</div>
+	<div class="{filter??:disabled}">
+		<label>
+		  {:box} {title}&nbsp;<small>{filter}</small>
+		</label>
+	</div>
 {optionHead:}
-	<div class="checkbox">
-	    <label style="font-weight:bold;">
-	      {:box}
-		  {title}&nbsp;<small>{count}</small>
-	    </label>
-  	</div>
+	<div>
+		<label style="font-weight:bold;">
+		  {data.count!count?:box}
+		  {title}&nbsp;<small>{filter}</small>
+		</label>
+	</div>
 {checked:}checked
 {disabled:}disabled
 {box:}<input onchange="infra.scroll=false; infra.Crumb.go('?catalog{:cat.mark.add}{add}')" {checked?:checked} type="checkbox">
